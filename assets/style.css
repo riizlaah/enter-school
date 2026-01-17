@@ -1,0 +1,354 @@
+/* Reset dasar */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Variabel warna untuk konsistensi */
+:root {
+  --primary-color: #2093e0;
+  --secondary-color: #003569;
+  --accent-color: #3c26bb;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --text-color: #333;
+  --text-light: #666;
+  --border-color: #ddd;
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+  font-size: 12px;
+}
+
+/* Gaya dasar untuk body */
+body {
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin: 0 auto;
+}
+/* Heading styles */
+h1 {
+  color: var(--secondary-color);
+  font-size: 2.5rem;
+  margin: 0.8rem 0;
+  padding-bottom: 0.5rem;
+  font-weight: 700;
+}
+h2 {
+  color: var(--secondary-color);
+  font-size: 2rem;
+  margin: 0.8rem 0;
+  padding-bottom: 0.3rem;
+  font-weight: 600;
+}
+h3 {
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+  margin: 0.7rem 0;
+  font-weight: 600;
+}
+h4 {
+  color: var(--secondary-color);
+  font-size: 1.3rem;
+  margin: 0.6rem 0;
+  font-weight: 600;
+}
+h5 {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+h6 {
+  color: var(--text-light);
+  font-size: 1rem;
+  margin: 0.4rem 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Paragraph styles */
+p {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+/* Horizontal rule */
+hr {
+  border: none;
+  height: 2px;
+  background: var(--primary-color);
+  margin: 1rem 0;
+}
+
+/* Link styles */
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+a:hover {
+  color: var(--accent-color);
+}
+
+/* Button-style links */
+a[role="button"] {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.7rem 1.5rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+  border: none;
+  cursor: pointer;
+}
+
+a[role="button"]:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Button styles */
+button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.8rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+}
+
+button:hover {
+  background-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+button:disabled {
+  opacity: 25%;
+}
+
+/* Forms */
+form {
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px 1px rgba(0,0,0,0.25);
+}
+label {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  gap: 6px;
+  margin: 1.2rem 0 0.5rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+}
+
+label > input,
+label > select,
+label > textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+label.row {
+  width: fit-content;
+  flex-direction: row;
+  align-items: center;
+}
+label.row {
+  user-select: none;
+  -moz-user-select: none;
+}
+input[type="checkbox"], input[type="radio"] {
+  width: 18px;
+  height: 18px;
+}
+
+label > input:focus,
+label > select:focus,
+label > textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+form > button {
+  margin: 1rem 0;
+  width: 100%;
+}
+form > button + span {
+  display: block;
+  width: fit-content;
+  margin: auto;
+}
+label.pass {
+  position: relative;
+}
+label.pass > svg {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  cursor: pointer;
+}
+label > a {
+  align-self: flex-end;
+}
+
+/* Dialog dan backdrop styles */
+dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: fit-content;
+  max-width: 90vw;
+  background-color: white;
+}
+dialog[open] {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+/* Details styles */
+details {
+  background-color: white;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--primary-color);
+}
+
+details > summary {
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--secondary-color);
+  padding: 0.5rem 0;
+  list-style: none;
+  position: relative;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+details > summary:after {
+  content: '▶';
+  position: absolute;
+  right: 10px;
+  transition: transform 0.3s;
+}
+
+details[open] > summary:after {
+  transform: rotate(90deg);
+}
+
+details > p {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Image styles */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+img:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Classes */
+.container {
+  background-color: white;
+  border-radius: 10px;
+  padding: 2.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  min-height: 100vh;
+}
+.row {
+  display: flex;
+  gap: 8px;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+}
+.t-center {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+.buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+.img-group {
+  margin: 2rem 0;
+  text-align: center;
+}
+.img-group p {
+  font-style: italic;
+  color: var(--text-light);
+  margin-top: 0.5rem;
+}
+.zero {
+  padding: 0;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+}
+
+@media screen and (max-width: 1366px) {
+  .container {
+    max-width: 600px;
+    margin: auto;
+  }
+}
+@media screen and (max-width: 768px) {
+  .container {
+    max-width: 600px;
+    margin: auto;
+  }
+}
+@media screen and (max-width: 450px) {
+  :root {
+    font-size: 16px;
+  }
+  label.pass > svg {
+    top: 55%;
+  }
+}
+
