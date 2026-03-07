@@ -18,6 +18,13 @@ function escape($val) {
   return mysqli_real_escape_string($conn, $val);
 }
 
+function query($string, $params = null) {
+  global $conn;
+  $stmt = $conn->prepare($string);
+  if($stmt->execute($params)) return $stmt->get_result();
+  return null;
+}
+
 function redirect($to, $wait = 0) {
   if($wait > 0) {
     return header("refresh:$wait;url=$to");
@@ -71,4 +78,9 @@ function env($name, $default = null) {
   global $env;
   if(!isset($env[$name])) return $default;
   return $env[$name];
+}
+
+function json_msg($msg, $code = 400) {
+  http_response_code($code);
+  echo "{\"message\": \"$msg\"}";
 }

@@ -1,5 +1,5 @@
 <?php
-require 'core.php';
+require 'api/core.php';
 
 if(!check_login()) exit;
 
