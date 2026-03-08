@@ -6,27 +6,10 @@
   <title>Enter School</title>
 </head>
 <body>
-  <script>
-    let uuid = localStorage.getItem("uuid");
-
-    if(uuid == null) {
-      uuid = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 10)}-${Math.random().toString(36).substring(2, 6)}`;
-      localStorage.setItem("uuid", uuid);
-    }
-    let res = getInfo();
-
-    async function getInfo() {
-      let res = await fetch("/api/login.php", {
-        method: "POST",
-        body: `{"uuid": "${uuid}"}`
-      });
-      if(res.ok) {
-        let json = await res.json();
-        return json;
-      }
-      console.log(`code: ${res.status}, msg: ${res.statusText}`);
-      return null;
-    }
-  </script>
+  <a href="/">Home</a>
+  <a href="/ambil-antrean.php">Ambil Antrean</a>
+  <a href="/antrean-saya.php">Antrean Saya</a>
+  
+  <script src="./js/device.js"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@ $db_name = "enter_school";
 $env = [];
 
 $conn = new mysqli($host, $user, $pass, $db_name);
+setlocale(LC_TIME, 'id_ID');
 
 if($conn->connect_error) {
   die("Koneksi gagal: ".$conn->connect_error);
@@ -23,6 +24,17 @@ function query($string, $params = null) {
   $stmt = $conn->prepare($string);
   if($stmt->execute($params)) return $stmt->get_result();
   return null;
+}
+
+function get_queues() {
+  $res = query("SELECT q.* FROM queues q LEFT JOIN user_queues uq ON uq.queue_id = q.id GROUP BY q.id HAVING q.quota > COUNT(uq.id)")
+    ->fetch_all(MYSQLI_ASSOC);
+  return array_map(function($item) {
+    $fmt = datefmt_create("id-ID", IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'Asia/Jakarta', IntlDateFormatter::GREGORIAN, "- d MMMM yyyy");
+    $date = date_create_immutable_from_format('Y-m-d', $item["date"]);
+    $item["date"] = $fmt->format($date);
+    return $item;
+  }, $res);
 }
 
 function redirect($to, $wait = 0) {
