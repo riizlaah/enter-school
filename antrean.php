@@ -40,7 +40,7 @@ if(!is_numeric($_GET["id"])) return http_response_code(400);
             query("#date").innerText = data.date;
             query("#queue_status").innerText = "Status Antrean : " +  data.queue_status;
             query("#status").innerText = data.status;
-            query("#position").innerText = data.position;
+            query("#position").innerText = "No. Antrean : " + data.position;
           });
         }
       });

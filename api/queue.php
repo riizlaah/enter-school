@@ -7,12 +7,9 @@ if(!is_numeric($_GET["id"])) return http_response_code(400);
 
 header("content-type: application/json");
 
-$queue_order = query("SELECT
-uq.id, ROW_NUMBER() OVER (ORDER BY uq.created_at) AS row_num
-FROM user_queues uq WHERE uq.id = ?", [intval($_GET["id"])])->fetch_assoc();
 
 $queue = query("SELECT
-  uq.id, uq.code, pn.phone_number, q.title, q.description,
+  uq.id, q.id as queue_id, uq.code, pn.phone_number, q.title, q.description,
   q.date, q.quota, q.status AS queue_status, uq.called_at, uq.completed_at, uq.created_at
   FROM user_queues uq
   LEFT JOIN queues q ON uq.queue_id = q.id
@@ -24,6 +21,10 @@ if($queue == null) {
   echo '{}';
   return;
 }
+
+$queue_order = query("SELECT row_num FROM
+  (SELECT uq.id, ROW_NUMBER() OVER (ORDER BY uq.created_at) AS row_num
+  FROM user_queues uq WHERE uq.queue_id = ?) ranked WHERE ranked.id = ?", [$queue["queue_id"], $_GET["id"]])->fetch_assoc();
 
 $queue["queue_status"] = match ($queue["queue_status"]) {
    null => "Belum dimulai",
