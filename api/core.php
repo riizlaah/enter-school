@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$host = env("db_name"));
+$host = env("db_host"));
 $user = env("db_user");
 $pass = env("db_pass");
 $db_name = env("db_name");
