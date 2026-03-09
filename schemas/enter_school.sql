@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 09 Mar 2026 pada 11.13
+-- Waktu pembuatan: 09 Mar 2026 pada 13.30
 -- Versi server: 10.11.13-MariaDB-0ubuntu0.24.04.1
 -- Versi PHP: 8.3.6
 
@@ -39,6 +39,8 @@ CREATE TABLE `devices` (
 -- Dumping data untuk tabel `devices`
 --
 
+INSERT INTO `devices` (`id`, `uuid`, `alias_name`) VALUES
+(2, '6b8c25835f10d96bf34c844baaa48bbe', 'Anonim');
 
 -- --------------------------------------------------------
 
@@ -56,6 +58,8 @@ CREATE TABLE `phone_numbers` (
 -- Dumping data untuk tabel `phone_numbers`
 --
 
+INSERT INTO `phone_numbers` (`id`, `device_id`, `phone_number`) VALUES
+(1, 2, '087676875564');
 
 -- --------------------------------------------------------
 
@@ -77,8 +81,8 @@ CREATE TABLE `queues` (
 --
 
 INSERT INTO `queues` (`id`, `title`, `description`, `date`, `quota`, `status`) VALUES
-(1, 'Pendaftaran SMP Okegas H1', NULL, '2026-04-20', 50, NULL),
-(2, 'Pendaftaran SMP Okegas H2', NULL, '2026-04-21', 50, NULL);
+(1, 'Pendaftaran SMP Okegas H1', NULL, '2026-04-09', 5, NULL),
+(2, 'Pendaftaran SMP Okegas H2', NULL, '2026-04-10', 5, NULL);
 
 -- --------------------------------------------------------
 
@@ -90,6 +94,7 @@ CREATE TABLE `user_queues` (
   `id` int(10) UNSIGNED NOT NULL,
   `code` varchar(16) NOT NULL,
   `phone_id` int(10) UNSIGNED NOT NULL,
+  `device_id` int(10) UNSIGNED DEFAULT NULL,
   `queue_id` int(10) UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `called_at` timestamp NULL DEFAULT NULL,
@@ -100,6 +105,8 @@ CREATE TABLE `user_queues` (
 -- Dumping data untuk tabel `user_queues`
 --
 
+INSERT INTO `user_queues` (`id`, `code`, `phone_id`, `device_id`, `queue_id`, `created_at`, `called_at`, `completed_at`) VALUES
+(1, '4BCD-3FGH', 1, NULL, 1, '2026-03-09 10:04:18', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -133,7 +140,8 @@ ALTER TABLE `user_queues`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `code` (`code`),
   ADD KEY `queue` (`queue_id`),
-  ADD KEY `phone` (`phone_id`);
+  ADD KEY `phone` (`phone_id`),
+  ADD KEY `device2` (`device_id`);
 
 --
 -- AUTO_INCREMENT untuk tabel yang dibuang
@@ -143,25 +151,25 @@ ALTER TABLE `user_queues`
 -- AUTO_INCREMENT untuk tabel `devices`
 --
 ALTER TABLE `devices`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `phone_numbers`
 --
 ALTER TABLE `phone_numbers`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `queues`
 --
 ALTER TABLE `queues`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `user_queues`
 --
 ALTER TABLE `user_queues`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -177,6 +185,7 @@ ALTER TABLE `phone_numbers`
 -- Ketidakleluasaan untuk tabel `user_queues`
 --
 ALTER TABLE `user_queues`
+  ADD CONSTRAINT `device2` FOREIGN KEY (`device_id`) REFERENCES `devices` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `phone` FOREIGN KEY (`phone_id`) REFERENCES `phone_numbers` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `queue` FOREIGN KEY (`queue_id`) REFERENCES `queues` (`id`) ON DELETE CASCADE;
 COMMIT;

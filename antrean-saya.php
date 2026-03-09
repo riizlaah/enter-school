@@ -6,7 +6,8 @@
   <title>Antrean Saya</title>
 </head>
 <body>
-  <div id="queues" style="display: grid; grid-template-columns: repeat(3, 1fr); padding: 24px;">
+  <a href="/">Kembali</a>
+  <div id="queues" style="display: grid; grid-template-columns: repeat(3, 1fr); padding: 24px; gap: 12px;">
   </div>
   <script src="/js/device.js"></script>
   <script>
@@ -16,14 +17,17 @@
         const queues = document.getElementById("queues");
         queues.innerHTML = "";
         res.json().then(arr => {
+          console.log(arr);
           arr.forEach(item => {
             queues.innerHTML += `
-            <div style="padding: 8px; box-shadow: 0 0 5px rgba(0,0,0,50);">
-              <p>${item.title}</p>
-              <p>${item.date}</p>
-              <p>${item.code}</p>
-              <p>${item.phone_number}</p>
-            </div>
+            <a href="/antrean.php?id=${item.id}" style="text-decoration: none; color: black;">
+              <div style="padding: 8px; box-shadow: 0 0 10px 0px rgba(50,50,50,10); border-radius: 8px;">
+                <p>${item.title}</p>
+                <p>${item.date}</p>
+                <p>${item.code}</p>
+                <p>${item.phone_number}</p>
+              </div>
+            </a>
             `;
           });
           // .innerText = ;

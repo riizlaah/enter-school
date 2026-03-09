@@ -1,7 +1,6 @@
 <?php
 require_once 'api/core.php';
 
-$queues = get_queues();
 
 if($_SERVER["REQUEST_METHOD"] == "POST") {
   // memastikan bahwa input 'uuid', 'phone_number', 'queue_id' ada
@@ -15,23 +14,38 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
   if($user == null) return http_response_code(400);
   // memastikan queue_id ada
   if(!is_numeric($_POST["queue_id"])) return http_response_code(400);
-  if(query("SELECT id FROM queues WHERE id = ?", [intval($_POST["queue_id"])])->num_rows == 0) return http_response_code(400);
+  if(!is_exists("queues", "id = ?", [$_POST["queue_id"]])) return http_response_code(400);
+  // memastikan queue masih bisa menampung
+  if(query("SELECT q.id, q.quota
+    FROM queues q
+    LEFT JOIN user_queues uq ON q.id = uq.queue_id
+    WHERE q.id = ?
+    GROUP BY q.id
+    HAVING q.quota > COUNT(uq.id)", [$_POST["queue_id"]])->num_rows == 0) return http_response_code(400);
   // cari no. telp, jika tidak ada maka tambahkan
   $phone = query("SELECT id FROM phone_numbers WHERE phone_number = ?", [$_POST["phone_number"]])->fetch_assoc();
   if($phone == null) {
     query("INSERT INTO phone_numbers (id, device_id, phone_number) VALUES (NULL, ?, ?)", [$user["id"], $_POST["phone_number"]]);
     $phone = query("SELECT id FROM phone_numbers WHERE phone_number = ?", [$_POST["phone_number"]])->fetch_assoc();
   }
-  if(query("SELECT id FROM user_queues WHERE phone_id = ?", [$phone["id"]])->num_rows > 0) return alert("Anda sudah mendaftar!", "/");
+  if(is_exists("user_queues", "phone_id = ? AND queue_id = ?", [$phone["id"], $_POST["queue_id"]])) return alert("Anda sudah mendaftar!", "/");
   // insert ke db
-  query("INSERT INTO user_queues (id, phone_id, queue_id, called_at, completed_at) VALUES (NULL, ?, ?, NULL, NULL)", [$phone["id"], $_POST["queue_id"]]);
+  $code = base_convert(bin2hex(random_bytes(5)), 16, 36);
+  $code = substr_replace(strtoupper($code), "-", 5, 0);
+  while(is_exists("user_queues", "code = ?", [$code])) {
+    $code = base_convert(bin2hex(random_bytes(5)), 16, 36);
+    $code = substr_replace(strtoupper($code), "-", 5, 0);
+  }
+  query("INSERT INTO user_queues (id, phone_id, queue_id, device_id, code, called_at, completed_at) VALUES (NULL, ?, ?, ?, ?, NULL, NULL)", [$phone["id"], $_POST["queue_id"], $user["id"], $code]);
   return alert("Sukses mendaftar!", "/");
 }
+
+$queues = get_queues();
 
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ambil Antrean</title>
