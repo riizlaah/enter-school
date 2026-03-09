@@ -80,7 +80,7 @@ function is_authorized(int $id) {
 
 function load_env() {
   global $env;
-  $env_content = file_get_contents("./.env");
+  $env_content = file_get_contents(dirname(__DIR__)."/.env");
   preg_match_all("/^([a-z_]+)=(.+)$/m", $env_content, $matches);
   foreach($matches[1] as $i => $key) {
     $env[$key] = $matches[2][$i];
