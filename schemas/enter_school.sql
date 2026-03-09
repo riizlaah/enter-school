@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Waktu pembuatan: 07 Mar 2026 pada 15.07
+-- Waktu pembuatan: 09 Mar 2026 pada 11.13
 -- Versi server: 10.11.13-MariaDB-0ubuntu0.24.04.1
 -- Versi PHP: 8.3.6
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `enter_school`
 --
+CREATE DATABASE IF NOT EXISTS `enter_school` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `enter_school`;
 
 -- --------------------------------------------------------
 
@@ -33,6 +35,11 @@ CREATE TABLE `devices` (
   `alias_name` varchar(32) NOT NULL DEFAULT 'Anonim'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `devices`
+--
+
+
 -- --------------------------------------------------------
 
 --
@@ -44,6 +51,11 @@ CREATE TABLE `phone_numbers` (
   `device_id` int(10) UNSIGNED NOT NULL,
   `phone_number` varchar(24) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `phone_numbers`
+--
+
 
 -- --------------------------------------------------------
 
@@ -60,6 +72,14 @@ CREATE TABLE `queues` (
   `status` enum('running','stopped','completed') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `queues`
+--
+
+INSERT INTO `queues` (`id`, `title`, `description`, `date`, `quota`, `status`) VALUES
+(1, 'Pendaftaran SMP Okegas H1', NULL, '2026-04-20', 50, NULL),
+(2, 'Pendaftaran SMP Okegas H2', NULL, '2026-04-21', 50, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -68,12 +88,18 @@ CREATE TABLE `queues` (
 
 CREATE TABLE `user_queues` (
   `id` int(10) UNSIGNED NOT NULL,
+  `code` varchar(16) NOT NULL,
   `phone_id` int(10) UNSIGNED NOT NULL,
   `queue_id` int(10) UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `called_at` timestamp NULL DEFAULT NULL,
   `completed_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `user_queues`
+--
+
 
 --
 -- Indexes for dumped tables
@@ -105,6 +131,7 @@ ALTER TABLE `queues`
 --
 ALTER TABLE `user_queues`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `code` (`code`),
   ADD KEY `queue` (`queue_id`),
   ADD KEY `phone` (`phone_id`);
 
@@ -116,6 +143,12 @@ ALTER TABLE `user_queues`
 -- AUTO_INCREMENT untuk tabel `devices`
 --
 ALTER TABLE `devices`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT untuk tabel `phone_numbers`
+--
+ALTER TABLE `phone_numbers`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --

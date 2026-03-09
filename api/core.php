@@ -27,6 +27,11 @@ function query($string, $params = null) {
   return null;
 }
 
+function is_exists($table, $where, $params) {
+  $row = query("SELECT EXISTS(SELECT 1 FROM $table WHERE $where) AS row_count", $params)->fetch_assoc();
+  return $row["row_count"] > 0;
+}
+
 function get_queues() {
   $res = query("SELECT q.* FROM queues q LEFT JOIN user_queues uq ON uq.queue_id = q.id GROUP BY q.id HAVING q.quota > COUNT(uq.id)")
     ->fetch_all(MYSQLI_ASSOC);
