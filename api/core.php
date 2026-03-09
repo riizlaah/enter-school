@@ -1,7 +1,8 @@
 <?php
 session_start();
+load_env();
 
-$host = env("db_host"));
+$host = env("db_host");
 $user = env("db_user");
 $pass = env("db_pass");
 $db_name = env("db_name");
@@ -13,7 +14,6 @@ setlocale(LC_TIME, 'id_ID');
 if($conn->connect_error) {
   die("Koneksi gagal: ".$conn->connect_error);
 }
-load_env();
 
 function escape($val) {
   global $conn;

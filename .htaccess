@@ -1,0 +1,7 @@
+Options all -Indexes
+<Files ".env">
+  Require all denied 
+</Files>
+<Files "^\.ht*">
+  Require all denied 
+</Files>
