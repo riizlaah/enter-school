@@ -1,10 +1,10 @@
 <?php
 session_start();
 
-$host = "localhost";
-$user = "nafan";
-$pass = "Heks137?";
-$db_name = "enter_school";
+$host = env("db_name"));
+$user = env("db_user");
+$pass = env("db_pass");
+$db_name = env("db_name");
 $env = [];
 
 $conn = new mysqli($host, $user, $pass, $db_name);
@@ -13,6 +13,7 @@ setlocale(LC_TIME, 'id_ID');
 if($conn->connect_error) {
   die("Koneksi gagal: ".$conn->connect_error);
 }
+load_env();
 
 function escape($val) {
   global $conn;
