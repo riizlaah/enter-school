@@ -1,15 +1,14 @@
 <?php
-require 'core.php';
+require dirname(__DIR__).'/api/core.php';
 
-if(has_login()) exit;
+if(isset($_SESSION["admin"])) exit;
 
 if($_SERVER["REQUEST_METHOD"] == "POST") {
-  load_env();
   if(!isset($_POST['email']) or !isset($_POST['password'])) return abort(400);
   if(!is_string($_POST['email']) or !is_string($_POST['password'])) return abort(400);
   if( ($_POST['email'] === env('admin_email')) and ($_POST['password'] === env('admin_pass')) ) {
     $_SESSION['admin'] = true;
-    return redirect('/dashboard');
+    return redirect('/admin/dashboard.php');
   } else {
     return redirect("https://youtu.be/xvFZjo5PgG0");
   }
@@ -30,7 +29,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
       <h1 class="t-center">Login</h1>
       <label>
         Email
-        <input type="text" name="email">
+        <input type="email" name="email">
       </label>
       <label class="pass">
         Password

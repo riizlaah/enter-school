@@ -303,6 +303,7 @@ img:hover {
 .column {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 .t-center {
   display: block;
@@ -329,6 +330,14 @@ img:hover {
   margin: 0;
   border: none;
   box-shadow: none;
+}
+.padding {
+  padding: 2rem;
+}
+.cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 @media screen and (max-width: 1366px) {

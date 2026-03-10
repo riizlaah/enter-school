@@ -5,6 +5,14 @@ if($_SERVER["REQUEST_METHOD"] != "GET") return http_response_code(400);
 
 header("content-type: application/json");
 
+if(is_admin()) {
+  $datas = [];
+  if(!isset($_GET["s"])) $datas = query("SELECT * FROM queues")->fetch_all(MYSQLI_ASSOC);
+  else $datas = query("SELECT * FROM queues WHERE title LIKE ?", ["%".$_GET["s"]."%"])->fetch_all(MYSQLI_ASSOC);
+  echo json_encode($datas);
+  return;
+}
+
 if(!isset($_GET["uuid"])) return http_response_code(400);
 $uuid = $_GET["uuid"];
 

@@ -1,7 +1,6 @@
 <?php
 require 'api/core.php';
 
-if(!check_login()) exit;
 
 $_SESSION = [];
 

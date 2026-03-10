@@ -1,12 +1,12 @@
 <?php
 session_start();
+$env = [];
 load_env();
 
 $host = env("db_host");
 $user = env("db_user");
 $pass = env("db_pass");
 $db_name = env("db_name");
-$env = [];
 
 $conn = new mysqli($host, $user, $pass, $db_name);
 setlocale(LC_TIME, 'id_ID');
@@ -57,6 +57,10 @@ function alert($msg, $redirect = null) {
     exit;
   }
   echo "<script>alert('$msg');</script>";
+}
+
+function is_admin() {
+  return isset($_SESSION["admin"]);
 }
 
 function check_login() {
