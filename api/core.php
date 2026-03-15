@@ -10,6 +10,7 @@ $db_name = env("db_name");
 
 $conn = new mysqli($host, $user, $pass, $db_name);
 setlocale(LC_TIME, 'id_ID');
+date_default_timezone_set("Asia/Jakarta");
 
 if($conn->connect_error) {
   die("Koneksi gagal: ".$conn->connect_error);
@@ -57,6 +58,13 @@ function alert($msg, $redirect = null) {
     exit;
   }
   echo "<script>alert('$msg');</script>";
+}
+
+function require_fields($fields, $sources) {
+  foreach($fields as $f) {
+    if(!isset($sources[$f])) return false;
+  }
+  return true;
 }
 
 function is_admin() {

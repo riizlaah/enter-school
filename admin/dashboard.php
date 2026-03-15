@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__).'/api/core.php';
 
-if(!is_admin()) return http_response_code(403);
+if(!is_admin()) return abort(404);
 
 ?>
 <!DOCTYPE html>
@@ -25,7 +25,8 @@ if(!is_admin()) return http_response_code(403);
   </div>
   <script>
     let timer = 0;
-    function deleteQueue(id) {
+    function deleteQueue(id, title) {
+      if(!confirm(`Yakin ingin menghapus ${title}?`)) return;
       fetch(`/api/delete-queue.php?id=${id}`, {method: "DELETE"})
       .then(res => {
         if(res.ok) {
@@ -50,10 +51,11 @@ if(!is_admin()) return http_response_code(403);
                 <h1>${data.title}</h1>
                 <h2>${data.date}</h2>
                 <p>${(data.description ?? "").substring(0, 32)}...</p>
+                <p>${data.registrar_count}/${data.quota} Pendaftar</p>
                 <div class="buttons">
                   <a href="/admin/edit-queue.php?id=${data.id}" role="button">Edit</a>
                   <a href="/admin/queue.php?id=${data.id}" role="button">Detail</a>
-                  <button onclick="deleteQueue(${data.id})">Hapus</button>
+                  <button onclick="deleteQueue(${data.id}, '${data.title}')">Hapus</button>
                 </div>
               </div>`;
             });

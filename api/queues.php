@@ -7,8 +7,13 @@ header("content-type: application/json");
 
 if(is_admin()) {
   $datas = [];
-  if(!isset($_GET["s"])) $datas = query("SELECT * FROM queues")->fetch_all(MYSQLI_ASSOC);
-  else $datas = query("SELECT * FROM queues WHERE title LIKE ?", ["%".$_GET["s"]."%"])->fetch_all(MYSQLI_ASSOC);
+  $search = "";
+  $params = null;
+  if(isset($_GET["s"])) {
+    $search = "WHERE title LIKE ?";
+    $params = ["%".$_GET["s"]."%"];
+  }
+  $datas = query("SELECT q.*, COUNT(uq.id) AS registrar_count FROM queues q LEFT JOIN user_queues uq ON uq.queue_id = q.id $search GROUP BY q.id, q.title, q.description, q.quota, q.date", $params)->fetch_all(MYSQLI_ASSOC);
   echo json_encode($datas);
   return;
 }
