@@ -29,7 +29,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
 $queue = query("SELECT * FROM queues WHERE `id` = ?", [$id])->fetch_assoc();
 
 ?>
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">

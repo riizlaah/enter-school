@@ -54,7 +54,7 @@ if(!is_admin()) return abort(404);
                 <p>${data.registrar_count}/${data.quota} Pendaftar</p>
                 <div class="buttons">
                   <a href="/admin/edit-queue.php?id=${data.id}" role="button">Edit</a>
-                  <a href="/admin/queue.php?id=${data.id}" role="button">Detail</a>
+                  <a href="/admin/queue-detail.php?id=${data.id}" role="button">Detail</a>
                   <button onclick="deleteQueue(${data.id}, '${data.title}')">Hapus</button>
                 </div>
               </div>`;
