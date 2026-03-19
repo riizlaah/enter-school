@@ -64,6 +64,11 @@ if(isset($_GET["d"])) {
     $fmt = datefmt_create("id-ID", IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'Asia/Jakarta', IntlDateFormatter::GREGORIAN, "d MMMM yyyy");
     $data["date"] = $fmt->format(date_create($data["date"]));
     $data["curr_queue"] = $uq;
+    $data["sec_left"] = 0;
+    if($uq != null) {
+      $diff = date_create()->diff(date_create_from_format("Y-m-d H:i:s", $uq["called_at"]));
+      $data["sec_left"] = $diff->m < 1 && $diff->h < 1 ? $diff->s : 0;
+    }
     header("content-type: application/json");
     echo json_encode($data);
   } elseif($_GET["d"] == "u") {
@@ -99,20 +104,20 @@ if(isset($_GET["d"])) {
     <div class="w-full font-semibold text-2xl text-center" id="q_title"></div>
     <div class="flex p-2 gap-2 items-center w-full">
       <a href="/admin/dashboard.php" class="bg-blue-400 p-2 text-white rounded-md">Kembali</a>
-      <button type="button" class="bg-blue-400 p-2 text-white rounded-md" id="q_status">Belum Dimulai</button>
+      <button type="button" class="bg-blue-400 p-2 text-white rounded-md" id="q_status"></button>
       <span class="grow text-end font-medium" id="q_date"></span>
     </div>
     <div class="flex flex-col">
       <div id="currentUser" class="p-3 rounded-lg bg-gray-100">
         <span class="p-2 text-2xl font-medium">Dipanggil sekarang</span>
         <div class="text-2xl font-medium p-2 hidden" id="no_curr_uq">-</div>
-        <div class="items-center mt-4 hidden" id="curr_uq">
+        <div class="items-center mt-4 hidden" id="curr_uq" data-uqid="-1">
           <span class="flex justify-center items-center w-16 font-semibold text-gray-400" id="uq_order">#1</span>
           <div class="flex flex-col grow font-mono">
             <span class="font-bold text-2xl" id="uq_code">4BCD-3FGH</span>
             <span id="uq_phone">087652710082</span>
           </div>
-          <button type="button" class="p-4 bg-blue-400 rounded-lg text-white">Selesai</button>
+          <button type="button" class="p-4 bg-blue-400 rounded-lg text-white" id="completeBtn">Selesai</button>
         </div>
       </div>
       <input type="text" name="search" id="search" placeholder="Cari No. Pendaftar..." class="m-3 p-2 bg-blue-50 rounded-md grow focus:bg-blue-100 outline-none">
@@ -124,8 +129,18 @@ if(isset($_GET["d"])) {
   <script>
     const addr = "/admin/queue-detail.php?id=<?= $_GET["id"] ?>";
     let inputTime;
+    let timeoutId2;
+    let cooldown = 0;
+    let search = query("#search");
+    let completeBtn = query("#completeBtn");
     function query(s) {
       return document.querySelector(s);
+    }
+
+    function toggleCallBtn(enabled) {
+      document.querySelectorAll(".bg-gray-700.text-white.p-2.rounded-lg").forEach((el) => {
+        el.disabled = !enabled;
+      });
     }
 
     async function jsonReq(url, body = "", method = "GET") {
@@ -137,22 +152,20 @@ if(isset($_GET["d"])) {
       return null;
     }
     getQueueInfo();
-    getUsersQueue();
 
-    query("#search").oninput = () => {
+    search.oninput = () => {
       clearTimeout(inputTime);
       inputTime = setTimeout(() => {
-        getUsersQueue(query("#search").value);
+        getUsersQueue(search.value);
       }, 500);
     };
 
     async function getQueueInfo() {
       let data = await jsonReq(addr + "&d=q");
-      console.log(data);
       query("#q_title").innerText = data.title;
-      query("#q_date").innerText = `Dimulai pada : ${data.date}`;
+      query("#q_date").innerText = `{data.date}`;
       let stat = query("#q_status");
-      status.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Hentikan" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
+      stat.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Hentikan" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
       if(status.innerText == "Selesai") stat.disabled = true;
       if(data.curr_queue == null) {
         query("#no_curr_uq").classList.remove("hidden");
@@ -163,7 +176,18 @@ if(isset($_GET["d"])) {
         query("#uq_order").innerText = data.curr_queue.queue_order;
         query("#uq_code").innerText = data.curr_queue.code;
         query("#uq_phone").innerText = data.curr_queue.phone_number;
+        completeBtn.onclick = () => {completeUser(data.curr_queue.id)};
       }
+      cooldown = data.sec_left;
+      if(cooldown > 0) {
+        completeBtn.disabled = true;
+        clearTimeout(timeoutId2);
+        timeoutId2 = setTimeout(() => {
+          toggleCallBtn(true);
+          completeBtn.disabled = false;
+        }, cooldown * 1000);
+      }
+      await getUsersQueue(search.value);
     }
 
     async function getUsersQueue(str = "") {
@@ -181,9 +205,27 @@ if(isset($_GET["d"])) {
             <span class="font-bold text-xl">${user.code}</span>
             <span>${user.phone_number}</span>
           </div>
-          <button type="button" class="bg-gray-700 text-white p-2 rounded-lg">Panggil</button>
+          <button type="button" class="bg-gray-700 text-white p-2 rounded-lg" ${cooldown > 0 ? "disabled" : ""} onclick="callUser(${user.id})">Panggil</button>
         </div>`
       });
+    }
+
+    async function callUser(id) {
+      let body = {
+        uq_id: id,
+        status: "called"
+      };
+      let res = await jsonReq(addr, JSON.stringify(body), "POST");
+      await getQueueInfo();
+    }
+
+    async function completeUser(id) {
+      let body = {
+        uq_id: id,
+        status: "completed"
+      };
+      let res = await jsonReq(addr, JSON.stringify(body), "POST");
+      await getQueueInfo();
     }
   </script>
 </body>
