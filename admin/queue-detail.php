@@ -11,14 +11,14 @@ if($id == false || $id <= 0) return abort();
 if($_SERVER["REQUEST_METHOD"] == "POST") {
   $input = file_get_contents("php://input");
   $json = json_decode($input, true);
-  $uq_id = intval($$json["uq_id"]);
+  $uq_id = intval($json["uq_id"]);
   if($uq_id == false || $uq_id <= 0) return abort();
-  $uq = query("SELECT id, called_at FROM user_queues WHERE id = ?", $uq_id)->fetch_assoc();
-  if($uq == null) return abort(404);
+  $uq = query("SELECT id, called_at FROM user_queues WHERE id = ?", [$uq_id])->fetch_assoc();
+  if($uq == null && $json["status"] == "completed") return abort(404);
   if($uq["called_at"] != null) {
-    $timestamp = date_create_immutable_from_format("Y-m-d H:i:s", $uq["called_at"]);
-    $diff = date_create()->diff($timestamp);
-    if($diff->m < 1 && $diff->h < 1) {
+    $called_at = date_create_from_format("Y-m-d H:i:s", $uq["called_at"]);
+    $diff = $called_at->diff(date_create());
+    if($diff->i < 1 && $diff->h < 1) {
       return json_msg("Mohon tunggu setidaknya 1 menit sebelum menyelesaikan sebuah antrean");
     }
   }
@@ -36,8 +36,13 @@ if($_SERVER["REQUEST_METHOD"] == "PATCH") {
   $input = file_get_contents("php://input");
   $json = json_decode($input, true);
   if(!isset($json["status"])) return abort();
+  if(!in_array($json["status"], ["running", "stopped", "completed"])) return abort();
   query("UPDATE queues SET `status` = ? WHERE `id` = ?", [$json["status"], $id]);
-  json_msg("Updated successfully", 200);
+  header("content-type: application/json");
+  echo json_encode([
+    "id" => $id,
+    "status" => $json["status"]
+  ]);
   return;
 }
 
@@ -66,8 +71,9 @@ if(isset($_GET["d"])) {
     $data["curr_queue"] = $uq;
     $data["sec_left"] = 0;
     if($uq != null) {
-      $diff = date_create()->diff(date_create_from_format("Y-m-d H:i:s", $uq["called_at"]));
-      $data["sec_left"] = $diff->m < 1 && $diff->h < 1 ? $diff->s : 0;
+      $called_at = date_create_from_format("Y-m-d H:i:s", $uq["called_at"]);
+      $diff = $called_at->diff(date_create());
+      $data["sec_left"] = $diff->i < 1 && $diff->h < 1 ? $diff->s : 0;
     }
     header("content-type: application/json");
     echo json_encode($data);
@@ -76,15 +82,15 @@ if(isset($_GET["d"])) {
     $search = "";
     $params = [$id];
     if(isset($_GET["s"])) {
-      $search = "WHERE code LIKE ? OR phone_number LIKE ?";
+      $search = "AND code LIKE ? OR phone_number LIKE ?";
       $str = "%".$_GET["s"]."%";
       $params = [$id, $str, $str];
     }
     $users = query("SELECT * FROM
-    (SELECT uq.id, uq.code, p.phone_number, 
+    (SELECT uq.id, uq.code, p.phone_number, called_at, completed_at,
     ROW_NUMBER() OVER (ORDER BY uq.created_at) AS queue_order
     FROM user_queues uq LEFT JOIN phone_numbers p ON uq.phone_id = p.id 
-    WHERE uq.queue_id = ? AND uq.called_at IS NULL AND uq.completed_at IS NULL) ranked $search", $params)->fetch_all(MYSQLI_ASSOC);
+    WHERE uq.queue_id = ?) ranked WHERE called_at IS NULL AND completed_at IS NULL $search", $params)->fetch_all(MYSQLI_ASSOC);
     header("content-type: application/json");
     echo json_encode($users);
   }
@@ -117,7 +123,7 @@ if(isset($_GET["d"])) {
             <span class="font-bold text-2xl" id="uq_code">4BCD-3FGH</span>
             <span id="uq_phone">087652710082</span>
           </div>
-          <button type="button" class="p-4 bg-blue-400 rounded-lg text-white" id="completeBtn">Selesai</button>
+          <button type="button" class="p-4 bg-blue-400 rounded-lg text-white disabled:opacity-25" id="completeBtn">Selesai</button>
         </div>
       </div>
       <input type="text" name="search" id="search" placeholder="Cari No. Pendaftar..." class="m-3 p-2 bg-blue-50 rounded-md grow focus:bg-blue-100 outline-none">
@@ -131,14 +137,16 @@ if(isset($_GET["d"])) {
     let inputTime;
     let timeoutId2;
     let cooldown = 0;
+    let currUserQueueId = 0;
     let search = query("#search");
     let completeBtn = query("#completeBtn");
+    let q_stat = query("#q_status");
     function query(s) {
       return document.querySelector(s);
     }
 
     function toggleCallBtn(enabled) {
-      document.querySelectorAll(".bg-gray-700.text-white.p-2.rounded-lg").forEach((el) => {
+      query("#users").children.forEach((el) => {
         el.disabled = !enabled;
       });
     }
@@ -160,25 +168,51 @@ if(isset($_GET["d"])) {
       }, 500);
     };
 
+    q_stat.onclick = () => {
+      switch (q_stat.innerText) {
+        case "Mulai":
+          changeStatus("running");
+          break;
+          case "Hentikan":
+          changeStatus("stopped");
+          break;
+          case "Lanjutkan":
+          changeStatus("running");
+          break;
+          case "Selesai":
+          changeStatus("completed");
+          break;
+        default:
+          break;
+      }
+    };
+
+
     async function getQueueInfo() {
       let data = await jsonReq(addr + "&d=q");
+      let cuq = query("#curr_uq");
+      let ncuq = query("#no_curr_uq");
       query("#q_title").innerText = data.title;
-      query("#q_date").innerText = `{data.date}`;
-      let stat = query("#q_status");
-      stat.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Hentikan" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
-      if(status.innerText == "Selesai") stat.disabled = true;
+      query("#q_date").innerText = data.date;
+      q_stat.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Hentikan" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
+      if(q_stat.innerText == "Selesai") stat.disabled = true;
       if(data.curr_queue == null) {
-        query("#no_curr_uq").classList.remove("hidden");
+        ncuq.classList.remove("hidden");
+        cuq.classList.add("hidden");
+        cuq.classList.remove("flex");
+        currUserQueueId = -1;
       } else {
-        let cuq = query("#curr_uq");
+        currUserQueueId = data.curr_queue.id;
+        if(!ncuq.classList.contains("hidden"))ncuq.classList.add("hidden");
         cuq.classList.remove("hidden");
         cuq.classList.add("flex");
-        query("#uq_order").innerText = data.curr_queue.queue_order;
+        query("#uq_order").innerText = "#" + data.curr_queue.queue_order;
         query("#uq_code").innerText = data.curr_queue.code;
         query("#uq_phone").innerText = data.curr_queue.phone_number;
         completeBtn.onclick = () => {completeUser(data.curr_queue.id)};
       }
       cooldown = data.sec_left;
+      console.log(cooldown);
       if(cooldown > 0) {
         completeBtn.disabled = true;
         clearTimeout(timeoutId2);
@@ -196,10 +230,12 @@ if(isset($_GET["d"])) {
       let users = await jsonReq(url);
       let div = query("#users");
       div.replaceChildren();
-      console.log(users);
-      if(users == null) return;
+      if(users.length == 0) {
+        if(str.trim().length == 0) q_stat.innerText = "Selesai";
+        return;
+      }
       users.forEach((user) => {
-        div.innerHTML += `<div class="flex items-center bg-gray-100 p-3 rounded-xl">
+        div.innerHTML += `<div class="flex items-center bg-gray-100 p-3 rounded-xl mb-4">
           <span class="flex justify-center items-center w-16 font-semibold text-gray-400">#${user.queue_order}</span>
           <div class="flex flex-col grow font-mono">
             <span class="font-bold text-xl">${user.code}</span>
@@ -211,6 +247,9 @@ if(isset($_GET["d"])) {
     }
 
     async function callUser(id) {
+      if(currUserQueueId > 0) {
+        await completeUser(currUserQueueId, false);
+      }
       let body = {
         uq_id: id,
         status: "called"
@@ -219,13 +258,29 @@ if(isset($_GET["d"])) {
       await getQueueInfo();
     }
 
-    async function completeUser(id) {
+    async function completeUser(id, refresh = true) {
       let body = {
         uq_id: id,
         status: "completed"
       };
       let res = await jsonReq(addr, JSON.stringify(body), "POST");
-      await getQueueInfo();
+      if(refresh) await getQueueInfo();
+    }
+
+    async function changeStatus(stat) {
+      let body = {
+        status: stat
+      };
+      q_stat.disabled = true;
+      jsonReq(addr, JSON.stringify(body), "PATCH")
+      .then(data => {
+        q_stat.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Hentikan" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
+        if(q_stat.innerText == "Selesai") stat.disabled = true;
+        else q_stat.disabled = false;
+        // if(data.status == "stopped") {
+          // query("#users").add("opacity")
+        // }
+      });
     }
   </script>
 </body>
