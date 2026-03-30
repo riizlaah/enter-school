@@ -15,6 +15,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
   if($uq_id == false || $uq_id <= 0) return abort();
   $uq = query("SELECT id, called_at FROM user_queues WHERE id = ?", [$uq_id])->fetch_assoc();
   if($uq == null && $json["status"] == "completed") return abort(404);
+  if($json["status"] == "canceled") {
+    query("UPDATE user_queues SET called_at = ? WHERE id = ?", [null, $uq_id]);
+  }
   if($uq["called_at"] != null) {
     $called_at = date_create_from_format("Y-m-d H:i:s", $uq["called_at"]);
     $diff = $called_at->diff(date_create());
@@ -73,7 +76,7 @@ if(isset($_GET["d"])) {
     if($uq != null) {
       $called_at = date_create_from_format("Y-m-d H:i:s", $uq["called_at"]);
       $diff = $called_at->diff(date_create());
-      $data["sec_left"] = $diff->i < 1 && $diff->h < 1 ? $diff->s : 0;
+      $data["sec_left"] = $diff->i < 1 && $diff->h < 1 ? 60 - $diff->s : 0;
     }
     header("content-type: application/json");
     echo json_encode($data);
@@ -106,11 +109,11 @@ if(isset($_GET["d"])) {
   <link rel="stylesheet" href="/assets/tailwind.css">
 </head>
 <body>
-  <div class="p-4 lg:w-3xl mx-auto">
+  <div class="p-4 lg:w-2xl mx-auto">
     <div class="w-full font-semibold text-2xl text-center" id="q_title"></div>
     <div class="flex p-2 gap-2 items-center w-full">
       <a href="/admin/dashboard.php" class="bg-blue-400 p-2 text-white rounded-md">Kembali</a>
-      <button type="button" class="bg-blue-400 p-2 text-white rounded-md" id="q_status"></button>
+      <button type="button" class="bg-blue-400 p-2 text-white rounded-md disabled:opacity-50" id="q_status"></button>
       <span class="grow text-end font-medium" id="q_date"></span>
     </div>
     <div class="flex flex-col">
@@ -123,7 +126,10 @@ if(isset($_GET["d"])) {
             <span class="font-bold text-2xl" id="uq_code">4BCD-3FGH</span>
             <span id="uq_phone">087652710082</span>
           </div>
-          <button type="button" class="p-4 bg-blue-400 rounded-lg text-white disabled:opacity-25" id="completeBtn">Selesai</button>
+          <div class="flex flex-col gap-2">
+            <button type="button" class="p-2 bg-gray-600 rounded-lg text-white disabled:opacity-50" id="cancelBtn">Batal</button>
+            <button type="button" class="p-2 bg-blue-400 rounded-lg text-white disabled:opacity-50" id="completeBtn">Selesai</button>
+          </div>
         </div>
       </div>
       <input type="text" name="search" id="search" placeholder="Cari No. Pendaftar..." class="m-3 p-2 bg-blue-50 rounded-md grow focus:bg-blue-100 outline-none">
@@ -140,13 +146,18 @@ if(isset($_GET["d"])) {
     let currUserQueueId = 0;
     let search = query("#search");
     let completeBtn = query("#completeBtn");
+    let cancelBtn = query("#cancelBtn");
     let q_stat = query("#q_status");
+    let cooldownFetched = false;
     function query(s) {
       return document.querySelector(s);
     }
+    function queries(s) {
+      return document.querySelectorAll(s);
+    }
 
     function toggleCallBtn(enabled) {
-      query("#users").children.forEach((el) => {
+      queries("#users>div>button").forEach((el) => {
         el.disabled = !enabled;
       });
     }
@@ -173,7 +184,7 @@ if(isset($_GET["d"])) {
         case "Mulai":
           changeStatus("running");
           break;
-          case "Hentikan":
+          case "Jeda":
           changeStatus("stopped");
           break;
           case "Lanjutkan":
@@ -189,39 +200,39 @@ if(isset($_GET["d"])) {
 
 
     async function getQueueInfo() {
-      let data = await jsonReq(addr + "&d=q");
-      let cuq = query("#curr_uq");
-      let ncuq = query("#no_curr_uq");
-      query("#q_title").innerText = data.title;
-      query("#q_date").innerText = data.date;
-      q_stat.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Hentikan" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
-      if(q_stat.innerText == "Selesai") stat.disabled = true;
-      if(data.curr_queue == null) {
-        ncuq.classList.remove("hidden");
-        cuq.classList.add("hidden");
-        cuq.classList.remove("flex");
-        currUserQueueId = -1;
-      } else {
-        currUserQueueId = data.curr_queue.id;
-        if(!ncuq.classList.contains("hidden"))ncuq.classList.add("hidden");
-        cuq.classList.remove("hidden");
-        cuq.classList.add("flex");
-        query("#uq_order").innerText = "#" + data.curr_queue.queue_order;
-        query("#uq_code").innerText = data.curr_queue.code;
-        query("#uq_phone").innerText = data.curr_queue.phone_number;
-        completeBtn.onclick = () => {completeUser(data.curr_queue.id)};
-      }
-      cooldown = data.sec_left;
-      console.log(cooldown);
-      if(cooldown > 0) {
-        completeBtn.disabled = true;
-        clearTimeout(timeoutId2);
-        timeoutId2 = setTimeout(() => {
-          toggleCallBtn(true);
-          completeBtn.disabled = false;
-        }, cooldown * 1000);
-      }
-      await getUsersQueue(search.value);
+      return jsonReq(addr + "&d=q")
+      .then(data => {
+        let cuq = query("#curr_uq");
+        let ncuq = query("#no_curr_uq");
+        query("#q_title").innerText = data.title;
+        query("#q_date").innerText = data.date;
+        q_stat.innerText = data.status == null ? "Mulai" : (data.status == "running" ? "Jeda" : (data.status == "stopped" ? "Lanjutkan" : "Selesai"));
+        if(q_stat.innerText == "Selesai") q_stat.disabled = true;
+        if(data.curr_queue == null) {
+          ncuq.classList.remove("hidden");
+          cuq.classList.add("hidden");
+          cuq.classList.remove("flex");
+          currUserQueueId = -1;
+        } else {
+          currUserQueueId = data.curr_queue.id;
+          if(!ncuq.classList.contains("hidden")) ncuq.classList.add("hidden");
+          cuq.classList.remove("hidden");
+          cuq.classList.add("flex");
+          query("#uq_order").innerText = "#" + data.curr_queue.queue_order;
+          query("#uq_code").innerText = data.curr_queue.code;
+          query("#uq_phone").innerText = data.curr_queue.phone_number;
+          completeBtn.onclick = () => {completeUser(data.curr_queue.id)};
+          cancelBtn.onclick = () => {cancelUser(data.curr_queue.id)};
+        }
+        cooldown = data.sec_left;
+        console.log(cooldown);
+        cooldownFetched = true;
+        if(cooldown > 0) {
+          completeBtn.disabled = true;
+          toggleCallBtn(false);
+        }
+        getUsersQueue(search.value);
+      });
     }
 
     async function getUsersQueue(str = "") {
@@ -241,21 +252,29 @@ if(isset($_GET["d"])) {
             <span class="font-bold text-xl">${user.code}</span>
             <span>${user.phone_number}</span>
           </div>
-          <button type="button" class="bg-gray-700 text-white p-2 rounded-lg" ${cooldown > 0 ? "disabled" : ""} onclick="callUser(${user.id})">Panggil</button>
+          <button type="button" class="bg-gray-700 text-white p-2 rounded-lg disabled:opacity-50" ${cooldown > 0 ? "disabled" : ""} onclick="callUser(${user.id})">Panggil</button>
         </div>`
       });
     }
 
     async function callUser(id) {
-      if(currUserQueueId > 0) {
-        await completeUser(currUserQueueId, false);
-      }
       let body = {
         uq_id: id,
         status: "called"
       };
-      let res = await jsonReq(addr, JSON.stringify(body), "POST");
-      await getQueueInfo();
+      if(currUserQueueId > 0) {
+        completeUser(currUserQueueId, false).then(res => {
+          jsonReq(addr, JSON.stringify(body), "POST").then(res => {
+            getQueueInfo();
+            // setTimeout(() => {document.location.reload()}, 500);
+          });
+        });
+        return;
+      }
+      jsonReq(addr, JSON.stringify(body), "POST").then(res => {
+        getQueueInfo();
+        // setTimeout(() => {document.location.reload()}, 500);
+      });
     }
 
     async function completeUser(id, refresh = true) {
@@ -263,8 +282,19 @@ if(isset($_GET["d"])) {
         uq_id: id,
         status: "completed"
       };
-      let res = await jsonReq(addr, JSON.stringify(body), "POST");
-      if(refresh) await getQueueInfo();
+      jsonReq(addr, JSON.stringify(body), "POST").then(res => {
+        if(refresh) getQueueInfo();
+      });
+    }
+
+    async function cancelUser(id) {
+      let body = {
+        uq_id: id,
+        status: "canceled"
+      };
+      jsonReq(addr, JSON.stringify(body), "POST").then(res => {
+        getQueueInfo();
+      });
     }
 
     async function changeStatus(stat) {
@@ -282,6 +312,14 @@ if(isset($_GET["d"])) {
         // }
       });
     }
+
+    setInterval(() => {
+      cooldown = Math.max(0, cooldown - 1);
+      if(cooldown == 0) {
+        toggleCallBtn(true);
+        completeBtn.disabled = false;
+      }
+    }, 1000);
   </script>
 </body>
 </html>

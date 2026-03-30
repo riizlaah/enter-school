@@ -31,10 +31,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
   if(is_exists("user_queues", "phone_id = ? AND queue_id = ?", [$phone["id"], $_POST["queue_id"]])) return alert("Anda sudah mendaftar!", "/");
   // insert ke db
   $code = base_convert(bin2hex(random_bytes(5)), 16, 36);
-  $code = substr_replace(strtoupper($code), "-", 5, 0);
+  $code = substr_replace(strtoupper($code), "-", 4, 0);
   while(is_exists("user_queues", "code = ?", [$code])) {
     $code = base_convert(bin2hex(random_bytes(5)), 16, 36);
-    $code = substr_replace(strtoupper($code), "-", 5, 0);
+    $code = substr_replace(strtoupper($code), "-", 4, 0);
   }
   query("INSERT INTO user_queues (id, phone_id, queue_id, device_id, code, called_at, completed_at) VALUES (NULL, ?, ?, ?, ?, NULL, NULL)", [$phone["id"], $_POST["queue_id"], $user["id"], $code]);
   return alert("Sukses mendaftar!", "/");

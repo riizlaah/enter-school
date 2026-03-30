@@ -34,27 +34,31 @@ $queue = query("SELECT * FROM queues WHERE `id` = ?", [$id])->fetch_assoc();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Antrean</title>
+  <link rel="stylesheet" href="/assets/tailwind.css">
 </head>
 <body>
-  <form action="?id=<?= $id ?>" method="post">
-    <label>
+  <form action="?id=<?= $id ?>" method="post" class="w-md p-8 shadow-lg shadow-blue-200 rounded-lg mx-auto mt-4 flex flex-col gap-2">
+    <h1 class="text-center font-bold text-3xl">Edit Antrean</h1>
+    <label class="flex flex-col">
       Judul
-      <input type="text" name="title" placeholder="Judul..." value="<?= $queue["title"] ?>">
-    </label>
+      <input type="text" name="title" placeholder="Pendaftaran xyz" value="<?= $queue["title"] ?>" class="border border-gray-200 outline-none focus:shadow focus:shadow-gray-400 p-2 w-full rounded-lg transition">
+    </label class="flex flex-col">
     <label>
       Deskripsi (opsional)
-      <textarea name="description" rows="3"><?= $queue["description"] ?></textarea>
+      <textarea name="description" rows="3" class="border border-gray-200 outline-none focus:shadow focus:shadow-gray-400 p-2 w-full rounded-lg transition"><?= $queue["description"] ?></textarea>
     </label>
-    <label>
+    <label class="flex flex-col">
       Tanggal
-      <input type="date" name="date" min="<?= (new DateTime())->modify("+1 day")->format("Y-m-d") ?>" value="<?= $queue["date"] ?>">
+      <input type="date" name="date" min="<?= (new DateTime())->modify("+1 day")->format("Y-m-d") ?>" value="<?= $queue["date"] ?>" class="border border-gray-200 outline-none focus:shadow focus:shadow-gray-400 p-2 w-full rounded-lg transition">
     </label>
-    <label>
+    <label class="flex flex-col">
       Kuota
-      <input type="text" inputmode="numeric" name="quota" value="<?= $queue["quota"] ?>" placeholder="50...">
+      <input type="text" inputmode="numeric" name="quota" value="<?= $queue["quota"] ?>" placeholder="50..." class="border border-gray-200 outline-none focus:shadow focus:shadow-gray-400 p-2 w-full rounded-lg transition">
     </label>
-    <a href="/admin/dashboard.php">Kembali</a>
-    <button type="submit">Ubah</button>
+    <div class="flex gap-3 mt-4">
+      <a href="/admin/dashboard.php" class="bg-gray-300 p-2 hover:scale-105 transition-all rounded grow text-center">Kembali</a>
+      <button type="submit" class="bg-blue-600 text-white p-2 hover:scale-105 transition-all rounded grow text-center">Simpan</button>
+    </div>
   </form>
 </body>
 </html>
