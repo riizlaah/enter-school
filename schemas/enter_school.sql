@@ -39,9 +39,6 @@ CREATE TABLE `devices` (
 -- Dumping data for table `devices`
 --
 
-INSERT INTO `devices` (`id`, `uuid`, `alias_name`) VALUES
-(2, '6b8c25835f10d96bf34c844baaa48bbe', 'Anonim');
-
 -- --------------------------------------------------------
 
 --
@@ -57,13 +54,6 @@ CREATE TABLE `phone_numbers` (
 --
 -- Dumping data for table `phone_numbers`
 --
-
-INSERT INTO `phone_numbers` (`id`, `device_id`, `phone_number`) VALUES
-(1, 2, '087676875564'),
-(2, 2, '086755476539'),
-(3, 2, '0846789965576'),
-(4, 2, '085899076003'),
-(5, 2, '085988434402');
 
 -- --------------------------------------------------------
 
@@ -83,10 +73,6 @@ CREATE TABLE `queues` (
 --
 -- Dumping data for table `queues`
 --
-
-INSERT INTO `queues` (`id`, `title`, `description`, `date`, `quota`, `status`) VALUES
-(1, 'Pendaftaran SMP Okegas H1', NULL, '2026-04-09', 5, NULL),
-(2, 'Pendaftaran SMP Okegas H2', NULL, '2026-04-10', 5, NULL);
 
 -- --------------------------------------------------------
 
@@ -108,13 +94,6 @@ CREATE TABLE `user_queues` (
 --
 -- Dumping data for table `user_queues`
 --
-
-INSERT INTO `user_queues` (`id`, `code`, `phone_id`, `device_id`, `queue_id`, `created_at`, `called_at`, `completed_at`) VALUES
-(1, '4BCD-3FGH', 1, NULL, 1, '2026-04-09 10:04:18', NULL, NULL),
-(2, 'B3PA-XBX5', 2, 2, 1, '2026-04-09 14:23:06', NULL, NULL),
-(3, '2DJW-DU1M', 3, 2, 1, '2026-04-09 14:23:17', NULL, NULL),
-(4, 'C10E-UIHF', 4, 2, 1, '2026-04-09 14:23:40', NULL, NULL),
-(5, '4Y5D-2LLE', 5, 2, 1, '2026-04-09 14:24:07', NULL, NULL);
 
 --
 -- Indexes for dumped tables
