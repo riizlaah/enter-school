@@ -21,26 +21,24 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login</title>
-  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/tailwind.css">
 </head>
 <body>
-  <div class="container">
-    <form action="" method="post">
-      <h1 class="t-center">Login</h1>
-      <label>
-        Email
-        <input type="email" name="email">
-      </label>
-      <label class="pass">
-        Password
-        <input type="password" name="password">
-        <i data-feather="eye"></i>
-      </label>
-      <button type="submit">Login</button>
-    </form>
-  </div>
-  <script src="/assets/feather.min.js"></script>
+  <form action="" method="post" class="w-md p-8 shadow-lg shadow-blue-200 rounded-lg mx-auto mt-4 flex flex-col gap-2">
+    <h1 class="text-center font-bold text-3xl">Login</h1>
+    <label class="flex flex-col">
+      Email
+      <input type="email" name="email" class="border border-gray-200 outline-none focus:shadow focus:shadow-gray-400 p-2 w-full rounded-lg transition">
+    </label>
+    <label class="pass flex flex-col relative">
+      Password
+      <input type="password" name="password" class="border border-gray-200 outline-none focus:shadow focus:shadow-gray-400 p-2 pr-9 rounded-lg transition">
+      <i data-feather="eye" class="absolute right-2 bottom-2.5"></i>
+    </label>
+    <button type="submit" class="bg-blue-600 text-white p-2 hover:scale-105 transition-all rounded mt-4">Login</button>
+  </form>
+  <script src="/js/feather.min.js"></script>
   <script>feather.replace();</script>
-  <script src="/assets/password_toggle.js"></script>
+  <script src="/js/password_toggle.js"></script>
 </body>
 </html>

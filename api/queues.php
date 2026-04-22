@@ -3,9 +3,10 @@ require_once 'core.php';
 
 if($_SERVER["REQUEST_METHOD"] != "GET") return http_response_code(400);
 
+
 header("content-type: application/json");
 
-if(is_admin()) {
+if(is_admin() && str_contains($_SERVER["HTTP_REFERER"], "admin")) {
   $datas = [];
   $search = "";
   $params = null;

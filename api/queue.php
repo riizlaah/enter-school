@@ -29,7 +29,7 @@ $queue_order = query("SELECT row_num FROM
 $queue["queue_status"] = match ($queue["queue_status"]) {
    null => "Belum dimulai",
    "running" => "Berlangsung",
-   "stopped" => "Dihentikan",
+   "stopped" => "Dijeda",
    "completed" => "Selesai",
 };
 if($queue["called_at"] == null && $queue["completed_at"] == null) {
