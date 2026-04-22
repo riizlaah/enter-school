@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pengambilan Antrean Pendaftaran Sekolah</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header>
+      <div class="logo-area">
+        <div class="logo-icon">G</div>
+        <div class="logo-text">Enter<br />School</div>
+      </div>
+      <div class="header-title">Pengambilan Antrean Pendaftaran Sekolah</div>
+    </header>
+
+    <!-- LAYOUT -->
+    <div class="layout">
+      <!-- SIDEBAR -->
+      <nav class="sidebar">
+        <a href="#ambil" class="active" onclick="setPage(this, 'ambil')"
+          >Ambil Antrian</a
+        >
+        <a href="#daftar" onclick="setPage(this, 'daftar')">Daftar Antrian</a>
+        <a href="#lihat" onclick="setPage(this, 'lihat')">Lihat AntrianMu</a>
+      </nav>
+
+      <!-- MAIN -->
+      <main id="main-content">
+        <!-- PAGE: AMBIL ANTRIAN -->
+        <div id="page-ambil" class="page">
+          <div class="card">
+            <h2>Ambil Antrian</h2>
+
+            <div class="field">
+              <label for="noTelp">No. Telepon</label>
+              <input type="tel" id="noTelp" placeholder="08xxxxxxxxxx" />
+            </div>
+
+            <div class="field">
+              <label>Pilih Tanggal</label>
+              <div class="dropdown-wrapper">
+                <div
+                  class="dropdown-trigger"
+                  id="dropdownTrigger"
+                  tabindex="0"
+                  onclick="toggleDropdown()"
+                  onkeydown="keyDropdown(event)"
+                >
+                  <span id="dropdownLabel">Pilih Tanggal dan Gelombang</span>
+                  <span class="chevron">&#8964;</span>
+                </div>
+                <div class="dropdown-menu" id="dropdownMenu">
+                  <div class="dropdown-group-label">Gelombang 1</div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Senin, 7 April 2025 – Gelombang 1')
+                    "
+                  >
+                    Senin, 7 April 2025
+                  </div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Selasa, 8 April 2025 – Gelombang 1')
+                    "
+                  >
+                    Selasa, 8 April 2025
+                  </div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Rabu, 9 April 2025 – Gelombang 1')
+                    "
+                  >
+                    Rabu, 9 April 2025
+                  </div>
+                  <div class="dropdown-divider"></div>
+                  <div class="dropdown-group-label">Gelombang 2</div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Senin, 14 April 2025 – Gelombang 2')
+                    "
+                  >
+                    Senin, 14 April 2025
+                  </div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Selasa, 15 April 2025 – Gelombang 2')
+                    "
+                  >
+                    Selasa, 15 April 2025
+                  </div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Rabu, 16 April 2025 – Gelombang 2')
+                    "
+                  >
+                    Rabu, 16 April 2025
+                  </div>
+                  <div class="dropdown-divider"></div>
+                  <div class="dropdown-group-label">Gelombang 3</div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Senin, 21 April 2025 – Gelombang 3')
+                    "
+                  >
+                    Senin, 21 April 2025
+                  </div>
+                  <div
+                    class="dropdown-item"
+                    onclick="
+                      selectOption(this, 'Selasa, 22 April 2025 – Gelombang 3')
+                    "
+                  >
+                    Selasa, 22 April 2025
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn-ambil" onclick="ambilAntrian()">Ambil</button>
+          </div>
+        </div>
+
+        <!-- PAGE: DAFTAR ANTRIAN -->
+        <div id="page-daftar" class="page" style="display: none">
+          <div class="card">
+            <h2>Daftar Antrian</h2>
+            <p
+              style="
+                text-align: center;
+                color: #1a3a6b;
+                font-size: 15px;
+                font-weight: 600;
+              "
+            >
+              Belum ada data antrian yang tersedia.
+            </p>
+          </div>
+        </div>
+
+        <!-- PAGE: LIHAT ANTRIANMU -->
+        <div id="page-lihat" class="page" style="display: none">
+          <div class="card">
+            <h2>Lihat AntrianMu</h2>
+            <div class="field">
+              <label for="cekTelp">No. Telepon</label>
+              <input type="tel" id="cekTelp" placeholder="08xxxxxxxxxx" />
+            </div>
+            <button class="btn-ambil">Cek Antrian</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <span class="copy">©Copyright 2026</span>
+      <span class="social-label">Social Media :</span>
+      <div class="socials-group">
+        <span class="social">
+          <span class="icon-circle">&#9737;</span>
+          @smkloremipsum
+        </span>
+        <span class="social">
+          <span class="icon-circle">f</span>
+          @smkloremipsum
+        </span>
+        <span class="social">
+          <span class="icon-circle">&#9743;</span>
+          +62 123-2342-345
+        </span>
+      </div>
+    </footer>
+
+    <script>
+      /* ── DROPDOWN ── */
+      const trigger = document.getElementById("dropdownTrigger");
+      const menu = document.getElementById("dropdownMenu");
+      const label = document.getElementById("dropdownLabel");
+
+      function toggleDropdown() {
+        const open = menu.classList.toggle("open");
+        trigger.classList.toggle("open", open);
+      }
+
+      function selectOption(el, value) {
+        label.textContent = value;
+        trigger.classList.add("selected");
+        menu.classList.remove("open");
+        trigger.classList.remove("open");
+      }
+
+      function keyDropdown(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleDropdown();
+        }
+        if (e.key === "Escape") {
+          menu.classList.remove("open");
+          trigger.classList.remove("open");
+        }
+      }
+
+      // Close when clicking outside
+      document.addEventListener("click", function (e) {
+        if (!trigger.contains(e.target) && !menu.contains(e.target)) {
+          menu.classList.remove("open");
+          trigger.classList.remove("open");
+        }
+      });
+
+      /* ── NAVIGATION ── */
+      function setPage(link, page) {
+        document
+          .querySelectorAll("nav.sidebar a")
+          .forEach((a) => a.classList.remove("active"));
+        link.classList.add("active");
+
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => (p.style.display = "none"));
+        document.getElementById("page-" + page).style.display = "block";
+      }
+
+      /* ── AMBIL ANTRIAN ── */
+      function ambilAntrian() {
+        const telp = document.getElementById("noTelp").value.trim();
+        const tanggal = label.textContent;
+        if (!telp) {
+          alert("Mohon masukkan No. Telepon terlebih dahulu.");
+          return;
+        }
+        if (tanggal === "Pilih Tanggal dan Gelombang") {
+          alert("Mohon pilih tanggal dan gelombang.");
+          return;
+        }
+        alert(
+          "Antrian berhasil diambil!\nNo. Telepon: " +
+            telp +
+            "\nJadwal: " +
+            tanggal,
+        );
+      }
+    </script>
+  </body>
+</html>

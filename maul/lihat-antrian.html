@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lihat AntreanMu - Enter School</title>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="antrian-style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sidebar Kiri -->
+      <aside class="sidebar">
+        <div class="logo-section">
+          <div class="logo">
+            <img src="img.png" alt="" />
+          </div>
+          <h1>Enter<br />School</h1>
+        </div>
+        <hr />
+
+        <nav class="menu">
+          <ul>
+            <li><a href="index.html" class="menu-item">Ambil Antrian</a></li>
+            <li><a href="#" class="menu-item">Daftar Antrean</a></li>
+            <li>
+              <a href="lihat-antrian.html" class="menu-item active"
+                >Lihat AntreanMu</a
+              >
+            </li>
+          </ul>
+        </nav>
+
+        <footer class="sidebar-footer">
+          <p>&copy;Copyright 2026</p>
+        </footer>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="header">
+          <h2>Antrean Milikmu</h2>
+        </div>
+
+        <section class="cards-container" id="cardsContainer">
+          <!-- Empty State - Tampil jika belum ada antrian -->
+          <div class="empty-state" id="emptyState">
+            <div class="empty-icon">
+              <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="55"
+                  fill="none"
+                  stroke="#d0d0d0"
+                  stroke-width="2"
+                />
+                <path
+                  d="M 40 50 L 50 60 L 40 70"
+                  fill="none"
+                  stroke="#d0d0d0"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M 80 50 L 70 60 L 80 70"
+                  fill="none"
+                  stroke="#d0d0d0"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <line
+                  x1="45"
+                  y1="85"
+                  x2="75"
+                  y2="85"
+                  stroke="#d0d0d0"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </div>
+            <h3>Belum ada antrian</h3>
+            <p>
+              Anda belum mengambil antrian. Silakan klik tombol "Ambil Antrian"
+              untuk mengambil antrian baru.
+            </p>
+            <a href="#" class="btn-take-queue">Ambil Antrian</a>
+          </div>
+
+          <!-- Queue Cards - Tampil jika sudah ada antrian -->
+          <div
+            class="queue-cards-wrapper"
+            id="queueCardsWrapper"
+            style="display: none"
+          >
+            <!-- Queue Card 1 -->
+            <div class="queue-card">
+              <div class="queue-header">
+                <h3>No. 0001</h3>
+                <p class="phone-number">No. Hp : 08965543555567</p>
+              </div>
+              <div class="queue-footer">
+                <div class="queue-date">5 Juli 2045</div>
+                <div class="queue-wave">Gelombang 1</div>
+              </div>
+            </div>
+
+            <!-- Queue Card 2 -->
+            <div class="queue-card">
+              <div class="queue-header">
+                <h3>No. 0001</h3>
+                <p class="phone-number">No. Hp : 08965543555567</p>
+              </div>
+              <div class="queue-footer">
+                <div class="queue-date">6 Juli 2045</div>
+                <div class="queue-wave">Gelombang 1</div>
+              </div>
+            </div>
+
+            <!-- Queue Card 3 -->
+            <div class="queue-card">
+              <div class="queue-header">
+                <h3>No. 0001</h3>
+                <p class="phone-number">No. Hp : 08965543555567</p>
+              </div>
+              <div class="queue-footer">
+                <div class="queue-date">7 Juli 2045</div>
+                <div class="queue-wave">Gelombang 1</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Decorative Elements -->
+        <div class="circle circle-top-right"></div>
+        <div class="circle circle-bottom-right"></div>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      <div class="footer-content">
+        <span>Social Media :</span>
+        <a href="#" class="social-link instagram">
+          <i data-feather="instagram"></i>
+          @smkloremipsum
+        </a>
+        <a href="#" class="social-link facebook">
+          <i data-feather="facebook"></i>
+          @smkloremipsum
+        </a>
+        <a href="#" class="social-link phone">
+          <i data-feather="phone"></i>
+          +62 123-2342-345
+        </a>
+        <script>
+          feather.replace();
+        </script>
+      </div>
+    </footer>
+
+    <script>
+      // Fungsi untuk toggle antara empty state dan queue cards
+      function toggleQueueCards() {
+        const emptyState = document.getElementById("emptyState");
+        const queueCardsWrapper = document.getElementById("queueCardsWrapper");
+
+        // Cek apakah ada data antrian di localStorage
+        const hasQueue = localStorage.getItem("hasQueue");
+
+        if (hasQueue === "true") {
+          emptyState.style.display = "none";
+          queueCardsWrapper.style.display = "grid";
+        } else {
+          emptyState.style.display = "flex";
+          queueCardsWrapper.style.display = "none";
+        }
+      }
+
+      // Jalankan fungsi saat halaman dimuat
+      document.addEventListener("DOMContentLoaded", toggleQueueCards);
+
+      // Event listener untuk tombol "Ambil Antrian" di empty state
+      document
+        .querySelector(".btn-take-queue")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          // Redirect ke halaman ambil antrian
+          window.location.href = "index.html";
+        });
+    </script>
+  </body>
+</html>
