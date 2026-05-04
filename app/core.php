@@ -21,6 +21,7 @@ function escape($val) {
   return mysqli_real_escape_string($conn, $val);
 }
 
+
 function query($string, $params = null) {
   global $conn;
   $stmt = $conn->prepare($string);
@@ -31,6 +32,10 @@ function query($string, $params = null) {
 function is_exists($table, $where, $params) {
   $row = query("SELECT EXISTS(SELECT 1 FROM $table WHERE $where) AS row_count", $params)->fetch_assoc();
   return $row["row_count"] > 0;
+}
+
+function today_str() {
+  return date("Y-m-d");
 }
 
 function get_lockets() {

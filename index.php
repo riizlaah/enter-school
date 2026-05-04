@@ -2,6 +2,40 @@
 require "app/core.php";
 
 
+if($_SERVER["REQUEST_METHOD"] == "POST") {
+  if(!require_fields(["phone", "locket_id", "service_id"], $_POST)) {
+    return abort(400);
+  }
+  if(!preg_match("/^\+?\d{10,}$/", $_POST["phone"])) return alert("No. Telepon tidak valid.");
+  if(!is_numeric($_POST["service_id"]) or !is_exists("services", "id = ?", [$_POST["service_id"]])) {
+    return abort(404);
+  }
+  if(!is_numeric($_POST["locket_id"]) or !is_exists("counters", "id = ?", [$_POST["locket_id"]])) {
+    return abort(404);
+  }
+  global $conn;
+
+  try {
+    $service_id = intval($_POST["service_id"]);
+    $counter_id = intval($_POST["locket_id"]);
+
+    $conn->begin_transaction();
+    $ss = query("SELECT * FROM service_schedules WHERE service_id = ? AND `date` = ?", [$service_id, today_str()])->fetch_assoc();
+    if($ss == null || $ss["is_open"] == 0) return alert("Layanan tidak tersedia", "/");
+    $booked = query("SELECT COUNT(*) AS row_count FROM queues WHERE service_id = ? AND appointment_date = ? AND `status` != 'skipped'", [$service_id, today_str()])->fetch_assoc()["row_count"];
+    if($booked >= $ss["max_quota"]) return alert("Kuota tidak tersedia", "/");
+    $next_number = query("SELECT MAX(q.queue_number) AS last_num FROM queues q WHERE service_id = ? AND appointment_date = ?", [$service_id, today_str()])->fetch_assoc()["last_num"] + 1;
+    query("INSERT INTO `queues` (service_id, counter_id, visitor_phone, queue_number, appointment_date) VALUES (?, ?, ?, ?, ?)", [$service_id, $counter_id, $_POST["phone"], $next_number, today_str()]);
+    $conn->commit();
+    alert("Berhasil", "/");
+  } catch(mysqli_sql_exception $e) {
+    $conn->rollback();
+    die;
+    // alert("Gagal", "/");
+  }
+
+}
+
 
 
 $lockets = get_lockets();
@@ -52,12 +86,21 @@ $lockets = get_lockets();
             type="tel"
             id="phone"
             placeholder="08xxxxxxxxxx"
+            name="phone"
             required />
         </div>
 
+        <!-- <div class="form-field">
+          <label for="name">Vis</label>
+          <input
+            type="text"
+            id="name"
+            name="name"/>
+        </div> -->
+
         <div class="form-field">
           <label for="locket">Pilih Loket</label>
-          <select id="locket" required>
+          <select id="locket" name="locket_id" required>
             <?php foreach($lockets as $locket): ?>
               <option value="<?= $locket["id"]  ?>"><?= $locket["name"] ?></option>
             <?php endforeach; ?>
