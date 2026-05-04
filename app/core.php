@@ -33,6 +33,23 @@ function is_exists($table, $where, $params) {
   return $row["row_count"] > 0;
 }
 
+function get_lockets() {
+  $res = query("SELECT * FROM counters WHERE is_active = 1")->fetch_all(MYSQLI_ASSOC);
+  $res = array_map(function($item) {
+    $service = query("SELECT s.* FROM counter_service cs LEFT JOIN services s ON cs.service_id = s.id WHERE cs.counter_id = ?", [$item["id"]])->fetch_all(MYSQLI_ASSOC);
+    $item["services"] = array_map(function($serv) {
+      return [
+      "id" => $serv["id"],
+      "name" => $serv["name"],
+      "prefix" => $serv["prefix"],
+      "slug" => $serv["slug"],
+      ];
+    }, $service);
+    return $item;
+  }, $res);
+  return $res;
+}
+
 function get_queues() {
   $res = query("SELECT q.* FROM queues q LEFT JOIN user_queues uq ON uq.queue_id = q.id WHERE q.status IS NULL GROUP BY q.id HAVING q.quota > COUNT(uq.id)")
     ->fetch_all(MYSQLI_ASSOC);
