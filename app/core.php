@@ -38,6 +38,12 @@ function today_str() {
   return date("Y-m-d");
 }
 
+function format_date($format, $date_str) {
+  $fmt = datefmt_create("id-ID", IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'Asia/Jakarta', IntlDateFormatter::GREGORIAN, $format);
+  $date = date_create_immutable_from_format('Y-m-d', $date_str);
+  return $fmt->format($date);
+}
+
 function get_lockets() {
   $res = query("SELECT * FROM counters WHERE is_active = 1")->fetch_all(MYSQLI_ASSOC);
   $res = array_map(function($item) {

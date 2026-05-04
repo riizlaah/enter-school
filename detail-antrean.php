@@ -1,11 +1,26 @@
-<!doctype html>
-<html lang="id">
+<?php
+require_once "app/core.php";
 
+if(!require_fields(["id", "phone"], $_GET)) {
+  return abort(400);
+}
+if(!is_numeric($_GET["id"])) {
+  return abort(400);
+}
+if(!preg_match("/^\+?\d{10,}$/", $_GET["phone"])) return alert("No. Telepon tidak valid.", "/");
+
+$id = intval($_GET["id"]);
+$queue = query("SELECT * FROM queues WHERE visitor_phone = ? AND id = ?", [$_GET["phone"], $id])->fetch_assoc();
+if($queue == null) return abort(404);
+$service = query("SELECT * FROM services WHERE id = ?", [$queue["service_id"]])->fetch_assoc();
+
+?>
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enter School</title>
-  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/style-v1.css" />
 </head>
 
 <body>
@@ -22,7 +37,7 @@
             <a href="" class="btn light">Antrean Berlangsung</a>
           </li>
           <li>
-            <a href="" class="btn light">Lihat AntreanMu</a>
+            <a href="/antrean-saya.php" class="btn light">Lihat AntreanMu</a>
           </li>
         </ul>
       </nav>
@@ -34,11 +49,11 @@
 
       <div class="detailcards">
         <div class="detailcard">
-          <div class="detailcard-number">No. 001</div>
+          <div class="detailcard-number"><?= $service["prefix"] ?><?= $queue["queue_number"] ?></div>
           <div class="detailcard-info">
-            <p>5 Juli 2045</p>
-            <p>Gelombang 1</p>
-            <span>+62 896-5543-5556</span>
+            <p><?= format_date("(EEEE) d MMM yyyy", $queue["appointment_date"]) ?></p>
+            <p><?= $service["name"] ?></p>
+            <span><?= $queue["visitor_phone"] ?></span>
           </div>
         </div>
       </div>
@@ -64,6 +79,21 @@
       <span>+62 123-2342-345</span>
     </div>
   </footer>
+  <script>
+    let savedQueuesJSON = localStorage.getItem("savedQueues");
+    if(savedQueuesJSON == null) {
+      savedQueuesJSON = "[]";
+    }
+    try {
+      let savedQueues = JSON.parse(savedQueuesJSON);
+      if(!savedQueues.some((item) => item.id == <?= $id ?> && item.phone == "<?= $_GET["phone"] ?>")) {
+        savedQueues.push({id: <?= $id ?>, phone: "<?= $_GET["phone"] ?>"});
+      }
+      localStorage.setItem("savedQueues", JSON.stringify(savedQueues));
+    } catch(err) {
+      localStorage.clear();
+      console.error(err.message);
+    }
+  </script>
 </body>
-
 </html>

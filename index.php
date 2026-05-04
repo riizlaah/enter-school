@@ -27,13 +27,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $next_number = query("SELECT MAX(q.queue_number) AS last_num FROM queues q WHERE service_id = ? AND appointment_date = ?", [$service_id, today_str()])->fetch_assoc()["last_num"] + 1;
     query("INSERT INTO `queues` (service_id, counter_id, visitor_phone, queue_number, appointment_date) VALUES (?, ?, ?, ?, ?)", [$service_id, $counter_id, $_POST["phone"], $next_number, today_str()]);
     $conn->commit();
-    alert("Berhasil", "/");
+    $id = query("SELECT * FROM `queues` ORDER BY id DESC LIMIT 1")->fetch_assoc()["id"];
+    alert("Berhasil", "/detail-antrean.php?id=$id&phone=".urlencode($_POST["phone"]));
   } catch(mysqli_sql_exception $e) {
     $conn->rollback();
-    die;
-    // alert("Gagal", "/");
+    alert("Gagal", "/");
   }
-
+  return;
 }
 
 
@@ -42,8 +42,6 @@ $lockets = get_lockets();
 
 
 ?>
-
-<!doctype html>
 <html lang="id">
 
 <head>
@@ -70,7 +68,7 @@ $lockets = get_lockets();
             <a href="" class="btn light">Antrean Berlangsung</a>
           </li>
           <li>
-            <a href="" class="btn light">Lihat AntreanMu</a>
+            <a href="/antrean-saya.php" class="btn light">Lihat AntreanMu</a>
           </li>
         </ul>
       </nav>
