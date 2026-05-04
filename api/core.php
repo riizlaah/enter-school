@@ -34,10 +34,10 @@ function is_exists($table, $where, $params) {
 }
 
 function get_queues() {
-  $res = query("SELECT q.* FROM queues q LEFT JOIN user_queues uq ON uq.queue_id = q.id GROUP BY q.id HAVING q.quota > COUNT(uq.id)")
+  $res = query("SELECT q.* FROM queues q LEFT JOIN user_queues uq ON uq.queue_id = q.id WHERE q.status IS NULL GROUP BY q.id HAVING q.quota > COUNT(uq.id)")
     ->fetch_all(MYSQLI_ASSOC);
   return array_map(function($item) {
-    $fmt = datefmt_create("id-ID", IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'Asia/Jakarta', IntlDateFormatter::GREGORIAN, "- d MMMM yyyy");
+    $fmt = datefmt_create("id-ID", IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'Asia/Jakarta', IntlDateFormatter::GREGORIAN, "d MMMM yyyy");
     $date = date_create_immutable_from_format('Y-m-d', $item["date"]);
     $item["date"] = $fmt->format($date);
     return $item;
