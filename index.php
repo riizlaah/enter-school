@@ -98,6 +98,31 @@ $lockets = get_lockets();
       <span>+62 123-2342-345</span>
     </div>
   </footer>
-</body>
+  <script src="/js/util.js"></script>
+  <script>
+    let locket = query("#locket");
+    let service_select = query("#service");
+    let services = [
+      <?php
+      foreach($lockets as $locket) {
+        $services = array_map(function($item) {
+          return "{id: {$item['id']}, name: \"{$item['name']}\"}";
+        }, $locket["services"]);
+        $services = implode(",", $services);
+        echo "{id: {$locket['id']}, services: [$services]},";
+      }
+      ?>
+    ]
 
+    locket.onchange = () => {
+      let val = locket.value;
+      let services2 = services.find((item) => item.id == val);
+      service_select.replaceChildren();
+      console.log(services2.services);
+      services2.services.forEach((item) => {
+        service_select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+      });
+    };
+  </script>
+</body>
 </html>
