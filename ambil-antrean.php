@@ -8,27 +8,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
   if(!isset($_POST["phone_number"])) return http_response_code(400);
   if(!isset($_POST["queue_id"])) return http_response_code(400);
   // memastikan 'phone_number' valid
-  if(!preg_match("/^\+?\d{12,}$/", $_POST["phone_number"])) return alert("No. Telepon tidak valid.");
+  if(!preg_match("/^\+?\d{10,}$/", $_POST["phone_number"])) return alert("No. Telepon tidak valid.");
   // memastikan user ada
   $user = query("SELECT id FROM devices WHERE uuid = ?", [$_POST["uuid"]])->fetch_assoc();
   if($user == null) return http_response_code(400);
   // memastikan queue_id ada
   if(!is_numeric($_POST["queue_id"])) return http_response_code(400);
-  if(!is_exists("queues", "id = ?", [$_POST["queue_id"]])) return http_response_code(400);
+  $queue_id = intval($_POST["queue_id"]);
+  if(!is_exists("queues", "id = ?", [$queue_id])) return http_response_code(400);
   // memastikan queue masih bisa menampung
   if(query("SELECT q.id, q.quota
     FROM queues q
     LEFT JOIN user_queues uq ON q.id = uq.queue_id
     WHERE q.id = ?
     GROUP BY q.id
-    HAVING q.quota > COUNT(uq.id)", [$_POST["queue_id"]])->num_rows == 0) return http_response_code(400);
+    HAVING q.quota > COUNT(uq.id)", [$queue_id])->num_rows == 0) return http_response_code(400);
   // cari no. telp, jika tidak ada maka tambahkan
   $phone = query("SELECT id FROM phone_numbers WHERE phone_number = ?", [$_POST["phone_number"]])->fetch_assoc();
   if($phone == null) {
     query("INSERT INTO phone_numbers (id, device_id, phone_number) VALUES (NULL, ?, ?)", [$user["id"], $_POST["phone_number"]]);
     $phone = query("SELECT id FROM phone_numbers WHERE phone_number = ?", [$_POST["phone_number"]])->fetch_assoc();
   }
-  if(is_exists("user_queues", "phone_id = ? AND queue_id = ?", [$phone["id"], $_POST["queue_id"]])) return alert("Anda sudah mendaftar!", "/");
+  if(is_exists("user_queues", "phone_id = ? AND queue_id = ?", [$phone["id"], $queue_id])) return alert("Anda sudah mendaftar!", "/");
   // insert ke db
   $code = base_convert(bin2hex(random_bytes(5)), 16, 36);
   $code = substr_replace(strtoupper($code), "-", 4, 0);
@@ -36,8 +37,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $code = base_convert(bin2hex(random_bytes(5)), 16, 36);
     $code = substr_replace(strtoupper($code), "-", 4, 0);
   }
-  query("INSERT INTO user_queues (id, phone_id, queue_id, device_id, code, called_at, completed_at) VALUES (NULL, ?, ?, ?, ?, NULL, NULL)", [$phone["id"], $_POST["queue_id"], $user["id"], $code]);
-  return alert("Sukses mendaftar!", "/");
+  query("INSERT INTO user_queues (id, phone_id, queue_id, device_id, code, called_at, completed_at) VALUES (NULL, ?, ?, ?, ?, NULL, NULL)", [$phone["id"], $queue_id, $user["id"], $code]);
+  $data = query("SELECT `id` FROM user_queues WHERE phone_id = ? AND queue_id = ?", [$phone["id"], $queue_id])->fetch_assoc();
+  return alert("Sukses mendaftar!", "/antrean.php?id=".strval($data["id"]));
 }
 
 $queues = get_queues();
@@ -56,14 +58,14 @@ $queues = get_queues();
     <input type="hidden" name="uuid" value="" id="device_uuid">
     <label>
       No. HP
-      <input type="text" name="phone_number" inputmode="numeric" placeholder="No. HP..." pattern="^\+?\d{12,}$">
+      <input type="text" name="phone_number" inputmode="numeric" placeholder="No. HP..." pattern="^\+?\d{10,}$">
     </label>
     <br>
     <label>
       Antrean
       <select name="queue_id">
         <?php foreach($queues as $q): ?>
-          <option value="<?= $q["id"] ?>"><?= $q["title"] . $q["date"] ?></option>
+          <option value="<?= $q["id"] ?>"><?= $q["title"] . " - " . $q["date"] ?></option>
         <?php endforeach; ?>
       </select>
     </label>

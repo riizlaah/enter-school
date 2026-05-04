@@ -22,7 +22,7 @@ if(!is_numeric($_GET["id"])) return http_response_code(400);
     <p id="status"></p>
     <p id="position"></p>
     <a href="/antrean-saya.php">Kembali</a>
-    <a href="/ambil-antrean.php">Ambil Antrean Lain</a>
+    <a href="/ambil-antrean.php" target="_blank">Ambil Antrean Lain</a>
   </div>
   <script>
     const queueId = "<?= $_GET["id"] ?>";
@@ -48,7 +48,7 @@ if(!is_numeric($_GET["id"])) return http_response_code(400);
     updateQueue();
     setInterval(() => {
       updateQueue();
-    }, 5000);
+    }, 10000);
   </script>
 </body>
 </html>
