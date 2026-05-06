@@ -5,4 +5,3 @@ function query(s) {
 function queryAll(s) {
   return document.querySelectorAll(s);
 }
-

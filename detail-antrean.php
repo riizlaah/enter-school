@@ -10,9 +10,25 @@ if(!is_numeric($_GET["id"])) {
 if(!preg_match("/^\+?\d{10,}$/", $_GET["phone"])) return alert("No. Telepon tidak valid.", "/");
 
 $id = intval($_GET["id"]);
-$queue = query("SELECT * FROM queues WHERE visitor_phone = ? AND id = ?", [$_GET["phone"], $id])->fetch_assoc();
+$phone = $_GET["phone"];
+$queue = query("SELECT * FROM queues WHERE visitor_phone = ? AND id = ?", [$phone, $id])->fetch_assoc();
 if($queue == null) return abort(404);
 $service = query("SELECT * FROM services WHERE id = ?", [$queue["service_id"]])->fetch_assoc();
+
+
+if(isset($_COOKIE["voucher"]) && $payload = SimpleJWT::decode($_COOKIE["voucher"])) {
+  if(!in_array($id, $payload[$phone])) {
+    $payload[$phone][] = $id;
+    $payload[$phone] = array_unique($payload[$phone]);
+    $voucher = SimpleJWT::encode($payload);
+  } else {
+    $voucher = "";
+  }
+} else {
+  $payload = [$phone => [$id]];
+  $voucher = SimpleJWT::encode($payload);
+}
+if($voucher != "") setcookie("voucher", $voucher, time()+60*60*24*30);
 
 ?>
 <html lang="id">
@@ -34,7 +50,7 @@ $service = query("SELECT * FROM services WHERE id = ?", [$queue["service_id"]])-
         <ul class="menu">
           <li><a href="/" class="btn light">Ambil Antrean</a></li>
           <li>
-            <a href="" class="btn light">Antrean Berlangsung</a>
+            <a href="/antrean-berlangsung.php" class="btn light">Antrean Berlangsung</a>
           </li>
           <li>
             <a href="/antrean-saya.php" class="btn light">Lihat AntreanMu</a>
@@ -47,9 +63,9 @@ $service = query("SELECT * FROM services WHERE id = ?", [$queue["service_id"]])-
     <main class="main-index">
       <h1>Detail Antrean</h1>
 
-      <div class="detailcards">
+      <div class="detailcards" id="detailCard">
         <div class="detailcard">
-          <div class="detailcard-number"><?= $service["prefix"] ?><?= $queue["queue_number"] ?></div>
+          <div class="detailcard-number"><?= $service["prefix"] ?><?= str_pad((string)$queue["queue_number"], 3, "0", STR_PAD_LEFT) ?></div>
           <div class="detailcard-info">
             <p><?= format_date("(EEEE) d MMM yyyy", $queue["appointment_date"]) ?></p>
             <p><?= $service["name"] ?></p>
@@ -59,6 +75,7 @@ $service = query("SELECT * FROM services WHERE id = ?", [$queue["service_id"]])-
       </div>
 
       <a class="antrian-baru" target="_blank" href="/">Ambil Antrean Baru</a>
+      <a class="antrian-baru" id="downloadImg">Unduh Gambar</a>
 
       <!-- Footer -->
     </main>
@@ -79,21 +96,36 @@ $service = query("SELECT * FROM services WHERE id = ?", [$queue["service_id"]])-
       <span>+62 123-2342-345</span>
     </div>
   </footer>
+  <script src="/js/util.js"></script>
+  <script src="/js/html2canvas.min.js"></script>
   <script>
-    let savedQueuesJSON = localStorage.getItem("savedQueues");
-    if(savedQueuesJSON == null) {
-      savedQueuesJSON = "[]";
-    }
-    try {
-      let savedQueues = JSON.parse(savedQueuesJSON);
-      if(!savedQueues.some((item) => item.id == <?= $id ?> && item.phone == "<?= $_GET["phone"] ?>")) {
-        savedQueues.push({id: <?= $id ?>, phone: "<?= $_GET["phone"] ?>"});
+    async function captureTicket() {
+      const element = query("#detailCard");
+      
+      try {
+        // Konversi HTML ke canvas
+        const canvas = await html2canvas(element, {
+            scale: 2, // Kualitas lebih tinggi
+            backgroundColor: '#ffffff',
+            logging: false,
+            useCORS: true // Jika ada gambar dari domain lain
+        });
+        
+        // Download sebagai PNG
+        const link = query("#downloadImg");
+        link.download = 'tiket-antrean.png';
+        link.href = canvas.toDataURL();
+        // link.click();
+        
+        // Atau tampilkan preview
+        // document.body.appendChild(canvas);
+        
+      } catch (error) {
+        console.error('Gagal konversi:', error);
+        alert('Gagal membuat gambar, silakan coba screenshot manual');
       }
-      localStorage.setItem("savedQueues", JSON.stringify(savedQueues));
-    } catch(err) {
-      localStorage.clear();
-      console.error(err.message);
     }
+    captureTicket();
   </script>
 </body>
 </html>

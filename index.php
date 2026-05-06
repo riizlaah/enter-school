@@ -1,5 +1,5 @@
 <?php
-require "app/core.php";
+require_once "app/core.php";
 
 
 if($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -7,6 +7,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     return abort(400);
   }
   if(!preg_match("/^\+?\d{10,}$/", $_POST["phone"])) return alert("No. Telepon tidak valid.");
+  $phone = $_POST["phone"];
   if(!is_numeric($_POST["service_id"]) or !is_exists("services", "id = ?", [$_POST["service_id"]])) {
     return abort(404);
   }
@@ -25,9 +26,20 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $booked = query("SELECT COUNT(*) AS row_count FROM queues WHERE service_id = ? AND appointment_date = ? AND `status` != 'skipped'", [$service_id, today_str()])->fetch_assoc()["row_count"];
     if($booked >= $ss["max_quota"]) return alert("Kuota tidak tersedia", "/");
     $next_number = query("SELECT MAX(q.queue_number) AS last_num FROM queues q WHERE service_id = ? AND appointment_date = ?", [$service_id, today_str()])->fetch_assoc()["last_num"] + 1;
-    query("INSERT INTO `queues` (service_id, counter_id, visitor_phone, queue_number, appointment_date) VALUES (?, ?, ?, ?, ?)", [$service_id, $counter_id, $_POST["phone"], $next_number, today_str()]);
+    query("INSERT INTO `queues` (service_id, counter_id, visitor_phone, queue_number, appointment_date) VALUES (?, ?, ?, ?, ?)", [$service_id, $counter_id, $phone, $next_number, today_str()]);
     $conn->commit();
     $id = query("SELECT * FROM `queues` ORDER BY id DESC LIMIT 1")->fetch_assoc()["id"];
+
+    if(isset($_COOKIE["voucher"]) && $payload = SimpleJWT::decode($_COOKIE["voucher"])) {
+      $payload[$phone][] = $id;
+      $payload[$phone] = array_unique($payload[$phone]);
+      $voucher = SimpleJWT::encode($payload);
+    } else {
+      $payload = [$phone => [$id]];
+      $voucher = SimpleJWT::encode($payload);
+    }
+
+    setcookie("voucher", $voucher, time()+60*60*24*30);
     alert("Berhasil", "/detail-antrean.php?id=$id&phone=".urlencode($_POST["phone"]));
   } catch(mysqli_sql_exception $e) {
     $conn->rollback();
@@ -63,9 +75,9 @@ $lockets = get_lockets();
       </div>
       <nav class="layer-menu">
         <ul class="menu">
-          <li><a href="" class="btn dark">Ambil Antrean</a></li>
+          <li><a href="/" class="btn dark">Ambil Antrean</a></li>
           <li>
-            <a href="" class="btn light">Antrean Berlangsung</a>
+            <a href="/antrean-berlangsung.php" class="btn light">Antrean Berlangsung</a>
           </li>
           <li>
             <a href="/antrean-saya.php" class="btn light">Lihat AntreanMu</a>

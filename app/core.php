@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . "/simpleJWT.php";
+
+// session_start();
 $env = [];
 load_env();
 
@@ -7,14 +9,16 @@ $host = env("db_host");
 $user = env("db_user");
 $pass = env("db_pass");
 $db_name = env("db_name");
+SimpleJWT::set_secret(env("jwt_secret"));
 
 $conn = new mysqli($host, $user, $pass, $db_name);
-setlocale(LC_TIME, 'id_ID');
+// setlocale(LC_TIME, 'id_ID');
 date_default_timezone_set("Asia/Jakarta");
 
 if($conn->connect_error) {
   die("Koneksi gagal: ".$conn->connect_error);
 }
+
 
 function escape($val) {
   global $conn;
@@ -47,7 +51,8 @@ function format_date($format, $date_str) {
 function get_lockets() {
   $res = query("SELECT * FROM counters WHERE is_active = 1")->fetch_all(MYSQLI_ASSOC);
   $res = array_map(function($item) {
-    $service = query("SELECT s.* FROM counter_service cs LEFT JOIN services s ON cs.service_id = s.id WHERE cs.counter_id = ?", [$item["id"]])->fetch_all(MYSQLI_ASSOC);
+    $service = query("SELECT s.* FROM counter_service cs LEFT JOIN services s ON cs.service_id = s.id 
+    LEFT JOIN service_schedules ss ON ss.service_id = s.id WHERE cs.counter_id = ? AND ss.is_open = 1 AND ss.date = ? ", [$item["id"], today_str()])->fetch_all(MYSQLI_ASSOC);
     $item["services"] = array_map(function($serv) {
       return [
       "id" => $serv["id"],
