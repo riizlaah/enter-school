@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . "/simpleJWT.php";
+
+// session_start();
 $env = [];
 load_env();
 
@@ -7,19 +9,22 @@ $host = env("db_host");
 $user = env("db_user");
 $pass = env("db_pass");
 $db_name = env("db_name");
+SimpleJWT::set_secret(env("jwt_secret"));
 
 $conn = new mysqli($host, $user, $pass, $db_name);
-setlocale(LC_TIME, 'id_ID');
+// setlocale(LC_TIME, 'id_ID');
 date_default_timezone_set("Asia/Jakarta");
 
 if($conn->connect_error) {
   die("Koneksi gagal: ".$conn->connect_error);
 }
 
+
 function escape($val) {
   global $conn;
   return mysqli_real_escape_string($conn, $val);
 }
+
 
 function query($string, $params = null) {
   global $conn;
@@ -31,6 +36,34 @@ function query($string, $params = null) {
 function is_exists($table, $where, $params) {
   $row = query("SELECT EXISTS(SELECT 1 FROM $table WHERE $where) AS row_count", $params)->fetch_assoc();
   return $row["row_count"] > 0;
+}
+
+function today_str() {
+  return date("Y-m-d");
+}
+
+function format_date($format, $date_str) {
+  $fmt = datefmt_create("id-ID", IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'Asia/Jakarta', IntlDateFormatter::GREGORIAN, $format);
+  $date = date_create_immutable_from_format('Y-m-d', $date_str);
+  return $fmt->format($date);
+}
+
+function get_lockets() {
+  $res = query("SELECT * FROM counters WHERE is_active = 1")->fetch_all(MYSQLI_ASSOC);
+  $res = array_map(function($item) {
+    $service = query("SELECT s.* FROM counter_service cs LEFT JOIN services s ON cs.service_id = s.id 
+    LEFT JOIN service_schedules ss ON ss.service_id = s.id WHERE cs.counter_id = ? AND ss.is_open = 1 AND ss.date = ? ", [$item["id"], today_str()])->fetch_all(MYSQLI_ASSOC);
+    $item["services"] = array_map(function($serv) {
+      return [
+      "id" => $serv["id"],
+      "name" => $serv["name"],
+      "prefix" => $serv["prefix"],
+      "slug" => $serv["slug"],
+      ];
+    }, $service);
+    return $item;
+  }, $res);
+  return $res;
 }
 
 function get_queues() {
