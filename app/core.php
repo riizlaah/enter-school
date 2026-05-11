@@ -133,7 +133,7 @@ function load_env() {
   $env_content = file_get_contents(dirname(__DIR__)."/.env");
   preg_match_all("/^([a-z_]+)=(.+)$/m", $env_content, $matches);
   foreach($matches[1] as $i => $key) {
-    $env[$key] = $matches[2][$i];
+    $env[$key] = trim($matches[2][$i]);
   }
 }
 
