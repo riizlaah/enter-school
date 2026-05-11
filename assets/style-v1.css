@@ -102,7 +102,7 @@ li {
 
 /* Main Content */
 
-.main {
+.main-index {
   width: 100%;
   display: flex;
   /* padding: 40px; */
@@ -113,6 +113,20 @@ li {
   flex-direction: column;
   gap: 20px;
 }
+
+.main {
+  width: 100%;
+  display: flex;
+  /* padding: 40px; */
+  margin: 40px;
+  margin-top: 150px;
+  align-items: center;
+  text-align: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 20px;
+}
+
 
 .main h1 {
   margin-bottom: 40px;
@@ -136,7 +150,7 @@ li {
 
 .card {
   width: 180px;
-  height: 200px;
+  min-height: 200px;
   background: #e5e5e5;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
