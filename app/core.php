@@ -51,16 +51,21 @@ function format_date($format, $date_str) {
 function get_lockets() {
   $res = query("SELECT * FROM counters WHERE is_active = 1")->fetch_all(MYSQLI_ASSOC);
   $res = array_map(function($item) {
-    $service = query("SELECT s.* FROM counter_service cs LEFT JOIN services s ON cs.service_id = s.id 
+    $service = query("SELECT s.*, ss.max_quota FROM counter_service cs LEFT JOIN services s ON cs.service_id = s.id 
     LEFT JOIN service_schedules ss ON ss.service_id = s.id WHERE cs.counter_id = ? AND ss.is_open = 1 AND ss.date = ? ", [$item["id"], today_str()])->fetch_all(MYSQLI_ASSOC);
-    $item["services"] = array_map(function($serv) {
+    $item["services"] = array_map(function($serv) use ($item) {
       return [
-      "id" => $serv["id"],
-      "name" => $serv["name"],
-      "prefix" => $serv["prefix"],
-      "slug" => $serv["slug"],
+        "id" => $serv["id"],
+        "name" => $serv["name"],
+        "prefix" => $serv["prefix"],
+        "slug" => $serv["slug"],
+        "max_quota" => $serv["max_quota"],
+        "registrant" => query("SELECT COUNT(*) as count FROM `queues` q WHERE q.counter_id = ? AND q.service_id = ? AND q.appointment_date = ? AND q.status != 'skipped'", [$item["id"], $serv["id"], today_str()])->fetch_assoc()["count"]
       ];
     }, $service);
+    $item["services"] = array_filter($item["services"], function($value) { 
+      return $value["max_quota"] > $value["registrant"]; 
+    });
     return $item;
   }, $res);
   return $res;

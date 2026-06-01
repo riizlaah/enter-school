@@ -8,7 +8,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
   }
   if(!preg_match("/^\+?\d{10,}$/", $_POST["phone"])) return alert("No. Telepon tidak valid.");
   $phone = $_POST["phone"];
-  if(!is_numeric($_POST["service_id"]) or !is_exists("services", "id = ?", [$_POST["service_id"]])) {
+  if(!is_numeric($_POST["service_id"]) or !is_exists("services", "id = ?", [intval($_POST["service_id"])])) {
+    var_dump($_POST);
     return abort(404);
   }
   if(!is_numeric($_POST["locket_id"]) or !is_exists("counters", "id = ?", [$_POST["locket_id"]])) {
@@ -31,7 +32,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST") {
     $id = query("SELECT * FROM `queues` ORDER BY id DESC LIMIT 1")->fetch_assoc()["id"];
 
     if(isset($_COOKIE["voucher"]) && $payload = SimpleJWT::decode($_COOKIE["voucher"])) {
-      $payload[$phone][] = $id;
+      if(isset($payload[$phone])) $payload[$phone][] = $id;
+      else $payload[$phone] = [$id];
       $payload[$phone] = array_unique($payload[$phone]);
       $voucher = SimpleJWT::encode($payload);
     } else {
@@ -60,7 +62,7 @@ $lockets = get_lockets();
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enter School</title>
-  <link rel="stylesheet" href="assets/style-v1.css" />
+  <link rel="stylesheet" href="assets/style-v2.css" />
 </head>
 
 <body>
@@ -87,7 +89,7 @@ $lockets = get_lockets();
     </aside>
 
     <!-- Main Content -->
-    <main class="main-index">
+    <main class="main">
       <h1 class="ambil-antrean">Ambil Antrean</h1>
       <form class="form-group" method="post" action="">
         <div class="form-field">

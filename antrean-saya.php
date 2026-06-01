@@ -7,8 +7,8 @@ $queues = [];
 if(isset($_COOKIE["voucher"]) && $payload = SimpleJWT::decode($_COOKIE["voucher"])) {
   foreach($payload as $phone => $ids) {
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $queues += query("SELECT q.*, s.name AS `service_name`, s.prefix AS `service_prefix` FROM
-     `queues` q LEFT JOIN services s ON s.id = q.service_id WHERE q.visitor_phone = ? AND q.id IN ($placeholders)", [$phone, ...$ids])->fetch_all(MYSQLI_ASSOC);
+    $queues = array_merge($queues, query("SELECT q.*, s.name AS `service_name`, s.prefix AS `service_prefix` FROM
+     `queues` q LEFT JOIN services s ON s.id = q.service_id WHERE q.visitor_phone = ? AND q.id IN ($placeholders)", [$phone, ...$ids])->fetch_all(MYSQLI_ASSOC));
   }
 }
 
@@ -18,13 +18,10 @@ if(isset($_COOKIE["voucher"]) && $payload = SimpleJWT::decode($_COOKIE["voucher"
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enter School</title>
-  <link rel="stylesheet" href="/assets/style-v1.css" />
+  <link rel="stylesheet" href="/assets/style-v2.css" />
 </head>
 
 <body>
-  <div class="spanduk">
-    <p class="judul">Pengambilan Antrean Pendaftaran Sekolah</p>
-  </div>
   <div class="container">
     <!-- Sidebar -->
     <aside class="sidebar">
