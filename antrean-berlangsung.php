@@ -5,14 +5,14 @@ require_once "app/core.php";
 
 $lockets = query("SELECT * FROM `counters` WHERE is_active = 1")->fetch_all(MYSQLI_ASSOC);
 foreach($lockets as $idx => $locket) {
-  $services = query("SELECT * FROM `services` s LEFT JOIN `counter_service` cs ON s.id = cs.service_id WHERE cs.counter_id = ? AND s.is_active = 1", [$locket["id"]])->fetch_all(MYSQLI_ASSOC);
+  $services = query("SELECT s.* FROM `services` s LEFT JOIN `counter_service` cs ON s.id = cs.service_id WHERE cs.counter_id = ? AND s.is_active = 1", [$locket["id"]])->fetch_all(MYSQLI_ASSOC);
   foreach($services as $idx2 => $service) {
     $count_query = "SELECT COUNT(*) as count FROM `queues` q WHERE q.counter_id = ? AND q.service_id = ? AND q.appointment_date = ?";
     $count_query_params = [$locket["id"], $service["id"], today_str()];
     $waiting = query("$count_query AND q.status = 'waiting'", $count_query_params)->fetch_assoc();
     $done = query("$count_query AND q.status = 'done'", $count_query_params)->fetch_assoc();
     $total = query("$count_query AND q.status != 'skipped'", $count_query_params)->fetch_assoc();
-    $today_schedule = query("SELECT * FROM `service_schedules` ss WHERE ss.service_id = ? AND `date` = ?", [$service["id"], today_str()])->fetch_assoc();
+    $today_schedule = query("SELECT * FROM `service_schedules` ss WHERE ss.service_id = ? AND ss.date = ?", [$service["id"], today_str()])->fetch_assoc();
     $remaining_quota = $today_schedule ? max(0, $today_schedule["max_quota"] - $total["count"]) : 0;
     $services[$idx2]["waiting"] = $waiting["count"];
     $services[$idx2]["done"] = $done["count"];
